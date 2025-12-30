@@ -58,5 +58,40 @@ class AppCharacter {
       effectColor: Colors.deepPurpleAccent,
       cost: 500,
     ),
+    AppCharacter(
+      id: 'mochi',
+      name: 'Sweet Mochi',
+      icon: '🍡',
+      effectColor: Colors.pinkAccent,
+      cost: 180,
+    ),
+    AppCharacter(
+      id: 'teddy',
+      name: 'Teddy Bear',
+      icon: '🧸',
+      effectColor: Colors.brown,
+      cost: 220,
+    ),
+    AppCharacter(
+      id: 'flower',
+      name: 'Cherry Blossom',
+      icon: '🌸',
+      effectColor: Colors.pink,
+      cost: 150,
+    ),
+    AppCharacter(
+      id: 'puffin',
+      name: 'Chilly Puffin',
+      icon: '🐧',
+      effectColor: Colors.lightBlueAccent,
+      cost: 350,
+    ),
+    AppCharacter(
+      id: 'unicorn',
+      name: 'Magic Unicorn',
+      icon: '🦄',
+      effectColor: Colors.purpleAccent,
+      cost: 600,
+    ),
   ];
 }

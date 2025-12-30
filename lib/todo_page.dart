@@ -94,13 +94,19 @@ class _TodoPageState extends State<TodoPage> {
                       ],
                     ),
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    itemCount: timerService.tasks.length,
-                    itemBuilder: (context, index) {
-                      final task = timerService.tasks[index];
-                      return Dismissible(
-                        key: Key(task.id),
+                : (() {
+                    final sortedTasks = List<TodoTask>.from(timerService.tasks)
+                      ..sort((a, b) {
+                        if (a.isCompleted == b.isCompleted) return 0;
+                        return a.isCompleted ? 1 : -1;
+                      });
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                      itemCount: sortedTasks.length,
+                      itemBuilder: (context, index) {
+                        final task = sortedTasks[index];
+                        return Dismissible(
+                          key: Key(task.id),
                         direction: DismissDirection.endToStart,
                         onDismissed: (_) => timerService.removeTask(task.id),
                         background: Container(
@@ -181,11 +187,12 @@ class _TodoPageState extends State<TodoPage> {
                               ),
                               onPressed: () => timerService.removeTask(task.id),
                             ),
-                          ),
-                        ),
-                      );
+                          ), // ListTile
+                        ), // Container
+                      ); // Dismissible
                     },
-                  ),
+                  ); // ListView.builder
+                }()), // IIFE
           ),
         ],
       ),

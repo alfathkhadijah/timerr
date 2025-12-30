@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
 import 'timer_service.dart';
 import 'stats_page.dart';
 import 'todo_page.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: Image.asset(
                   currentTheme.backgroundImagePath!,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(color: backgroundColor),
                 ),
               ),
             )
@@ -375,47 +377,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 const SizedBox(height: 40),
 
                 // Controls (only show if not running)
-                if (!timerService.isRunning) ...[
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withOpacity(0.2)),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: timerService.selectedCategory,
-                              dropdownColor: backgroundColor, 
-                              style: TextStyle(color: textColor, fontSize: 16, fontFamily: 'Outfit'),
-                              icon: Icon(Icons.keyboard_arrow_down, color: textColor.withOpacity(0.5)),
-                              isExpanded: true,
-                              items: timerService.categories.map((String category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  timerService.setCategory(newValue);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () => _showEditCategoriesDialog(context, timerService, textColor, accentColor, backgroundColor),
-                        icon: Icon(Icons.edit_note, color: accentColor),
-                        tooltip: 'Edit Categories',
-                      ),
-                    ],
-                  ),
+                  _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
                   
                   const SizedBox(height: 24),
 
@@ -503,7 +465,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ],
                     ),
                   ],
-                ],
 
                 const SizedBox(height: 40),
 
@@ -689,6 +650,84 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor) {
+    if (service.isRunning) return const SizedBox.shrink();
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Session Goal",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: textColor.withOpacity(0.4),
+                letterSpacing: 1.2,
+              ),
+            ),
+            IconButton(
+              onPressed: () => _showEditCategoriesDialog(context, service, textColor, accentColor, backgroundColor),
+              icon: Icon(Icons.settings_suggest_rounded, color: accentColor, size: 20),
+              tooltip: 'Manage Categories',
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 52,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            itemCount: service.categories.length,
+            itemBuilder: (context, index) {
+              final category = service.categories[index];
+              final isSelected = service.selectedCategory == category;
+              
+              return GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  service.setCategory(category);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? accentColor : Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: isSelected ? [
+                      BoxShadow(
+                        color: accentColor.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    ] : [],
+                  ),
+                  child: Center(
+                    child: Text(
+                      category.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: isSelected ? Colors.white : textColor.withOpacity(0.6),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

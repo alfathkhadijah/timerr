@@ -43,17 +43,7 @@ class ShopPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                GestureDetector(
-                  onLongPress: () {
-                    timerService.debugAddCoins();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('💰 Cheat Activated: +1000 Coins!'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  child: Container(
+                  Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.amber.withOpacity(0.1),
@@ -74,7 +64,6 @@ class ShopPage extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
               ],
             ),
           ),
