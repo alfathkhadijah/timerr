@@ -1,32 +1,39 @@
 #!/bin/bash
 
-echo "🚀 Building optimized Focus Space APK..."
+echo "🚀 Building highly optimized Focus Space APK..."
 
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
 flutter clean
 flutter pub get
 
-# Build optimized APK with basic size reduction
-echo "📦 Building optimized release APK..."
+# Build with maximum optimization
+echo "📦 Building with maximum optimization..."
 flutter build apk \
   --release \
   --shrink \
-  --target-platform android-arm64
+  --target-platform android-arm64 \
+  --tree-shake-icons \
+  --dart-define=flutter.inspector.structuredErrors=false
 
-echo "✅ Optimized APK built successfully!"
-echo "📍 Location: build/app/outputs/flutter-apk/app-release.apk"
+echo "✅ Optimized APK built!"
 
-# Show APK size
+# Check actual file size
 if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+    echo "📍 Location: build/app/outputs/flutter-apk/app-release.apk"
     size=$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1)
-    echo "📏 APK Size: $size"
+    echo "📏 Actual APK Size: $size"
+    
+    # Get detailed size info
+    ls -lh build/app/outputs/flutter-apk/app-release.apk
+    
+    # Analyze APK contents
+    echo ""
+    echo "🔍 Analyzing APK contents..."
+    if command -v unzip &> /dev/null; then
+        echo "Top 10 largest files in APK:"
+        unzip -l build/app/outputs/flutter-apk/app-release.apk | sort -k1 -nr | head -15
+    fi
+else
+    echo "❌ APK not found!"
 fi
-
-echo "🎯 Size optimization techniques applied:"
-echo "   ✓ Code shrinking"
-echo "   ✓ Resource shrinking"
-echo "   ✓ R8 optimization"
-echo "   ✓ ARM64 only (smaller size)"
-echo "   ✓ Removed unused assets"
-echo "   ✓ Optimized dependencies"
