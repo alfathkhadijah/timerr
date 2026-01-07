@@ -51,6 +51,20 @@ class MyApp extends StatelessWidget {
                 bodyColor: currentTheme.textColor,
                 displayColor: currentTheme.textColor,
               ),
+            ).copyWith(
+              // Only load specific font weights we actually use
+              bodyLarge: GoogleFonts.outfit(
+                color: currentTheme.textColor,
+                fontWeight: FontWeight.w400,
+              ),
+              bodyMedium: GoogleFonts.outfit(
+                color: currentTheme.textColor,
+                fontWeight: FontWeight.w500,
+              ),
+              headlineLarge: GoogleFonts.outfit(
+                color: currentTheme.textColor,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             scaffoldBackgroundColor: currentTheme.background,
           ),
