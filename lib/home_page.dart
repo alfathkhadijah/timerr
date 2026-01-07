@@ -73,178 +73,222 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
           // Main Content Layer
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 450),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    child: KeyedSubtree(
-                      key: ValueKey<int>(_currentIndex),
-                      child: _currentIndex == 0 
-                        ? _buildTimerView(context, textColor, accentColor, backgroundColor, timerService)
-                        : _currentIndex == 1 
-                          ? const TodoPage()
-                          : _currentIndex == 2
-                            ? const ShopPage() 
-                            : const StatsPage(),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxWidth = constraints.maxWidth > 600 ? 500.0 : constraints.maxWidth * 0.9;
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: constraints.maxWidth > 600 ? 32.0 : 24.0, 
+                    vertical: 16.0
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return FadeTransition(opacity: animation, child: child);
+                        },
+                        child: KeyedSubtree(
+                          key: ValueKey<int>(_currentIndex),
+                          child: _currentIndex == 0 
+                            ? _buildTimerView(context, textColor, accentColor, backgroundColor, timerService)
+                            : _currentIndex == 1 
+                              ? const TodoPage()
+                              : _currentIndex == 2
+                                ? const ShopPage() 
+                                : const StatsPage(),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
       ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          navigationBarTheme: NavigationBarThemeData(
-            labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((states) {
-              if (states.contains(MaterialState.selected)) {
-                return TextStyle(
-                  color: accentColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                );
-              }
-              return TextStyle(
-                color: timerService.isRunning ? textColor.withOpacity(0.25) : textColor.withOpacity(0.5),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              );
-            }),
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            // Very soft, barely visible background
-            color: textColor.withOpacity(0.02),
-            border: Border(
-              top: BorderSide(
-                color: textColor.withOpacity(0.06),
-                width: 0.5,
+      bottomNavigationBar: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 600;
+          final navHeight = isTablet ? 75.0 : 65.0;
+          final iconSize = isTablet ? 28.0 : 24.0;
+          final fontSize = isTablet ? 14.0 : 12.0;
+          
+          return Theme(
+            data: Theme.of(context).copyWith(
+              navigationBarTheme: NavigationBarThemeData(
+                labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((states) {
+                  if (states.contains(MaterialState.selected)) {
+                    return TextStyle(
+                      color: accentColor,
+                      fontSize: fontSize,
+                      fontWeight: FontWeight.w600,
+                    );
+                  }
+                  return TextStyle(
+                    color: timerService.isRunning ? textColor.withOpacity(0.25) : textColor.withOpacity(0.5),
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w500,
+                  );
+                }),
               ),
             ),
-          ),
-          child: NavigationBar(
-            selectedIndex: _currentIndex,
-            onDestinationSelected: (int index) {
-              if (!timerService.isRunning) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              }
-            },
-            backgroundColor: Colors.transparent,
-            indicatorColor: accentColor.withOpacity(0.08),
-            elevation: 0,
-            height: 65,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            destinations: [
-              NavigationDestination(
-                icon: Icon(
-                  Icons.timer_outlined, 
-                  color: textColor.withOpacity(0.4),
-                ), 
-                selectedIcon: Icon(
-                  Icons.timer, 
-                  color: accentColor,
-                ), 
-                label: 'Timer'
+            child: Container(
+              decoration: BoxDecoration(
+                color: textColor.withOpacity(0.02),
+                border: Border(
+                  top: BorderSide(
+                    color: textColor.withOpacity(0.06),
+                    width: 0.5,
+                  ),
+                ),
               ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.checklist_outlined, 
-                  color: timerService.isRunning 
-                    ? textColor.withOpacity(0.15) 
-                    : textColor.withOpacity(0.4),
-                ), 
-                selectedIcon: Icon(
-                  Icons.checklist, 
-                  color: timerService.isRunning 
-                    ? accentColor.withOpacity(0.25) 
-                    : accentColor,
-                ), 
-                label: 'Tasks'
+              child: NavigationBar(
+                selectedIndex: _currentIndex,
+                onDestinationSelected: (int index) {
+                  if (!timerService.isRunning) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  }
+                },
+                backgroundColor: Colors.transparent,
+                indicatorColor: accentColor.withOpacity(0.08),
+                elevation: 0,
+                height: navHeight,
+                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.timer_outlined, 
+                      color: textColor.withOpacity(0.4),
+                      size: iconSize,
+                    ), 
+                    selectedIcon: Icon(
+                      Icons.timer, 
+                      color: accentColor,
+                      size: iconSize,
+                    ), 
+                    label: 'Timer'
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.checklist_outlined, 
+                      color: timerService.isRunning 
+                        ? textColor.withOpacity(0.15) 
+                        : textColor.withOpacity(0.4),
+                      size: iconSize,
+                    ), 
+                    selectedIcon: Icon(
+                      Icons.checklist, 
+                      color: timerService.isRunning 
+                        ? accentColor.withOpacity(0.25) 
+                        : accentColor,
+                      size: iconSize,
+                    ), 
+                    label: 'Tasks'
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.shopping_bag_outlined, 
+                      color: timerService.isRunning 
+                        ? textColor.withOpacity(0.15) 
+                        : textColor.withOpacity(0.4),
+                      size: iconSize,
+                    ), 
+                    selectedIcon: Icon(
+                      Icons.shopping_bag, 
+                      color: timerService.isRunning 
+                        ? accentColor.withOpacity(0.25) 
+                        : accentColor,
+                      size: iconSize,
+                    ), 
+                    label: 'Shop'
+                  ),
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.bar_chart_outlined, 
+                      color: timerService.isRunning 
+                        ? textColor.withOpacity(0.15) 
+                        : textColor.withOpacity(0.4),
+                      size: iconSize,
+                    ), 
+                    selectedIcon: Icon(
+                      Icons.bar_chart, 
+                      color: timerService.isRunning 
+                        ? accentColor.withOpacity(0.25) 
+                        : accentColor,
+                      size: iconSize,
+                    ), 
+                    label: 'Stats'
+                  ),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.shopping_bag_outlined, 
-                  color: timerService.isRunning 
-                    ? textColor.withOpacity(0.15) 
-                    : textColor.withOpacity(0.4),
-                ), 
-                selectedIcon: Icon(
-                  Icons.shopping_bag, 
-                  color: timerService.isRunning 
-                    ? accentColor.withOpacity(0.25) 
-                    : accentColor,
-                ), 
-                label: 'Shop'
-              ),
-              NavigationDestination(
-                icon: Icon(
-                  Icons.bar_chart_outlined, 
-                  color: timerService.isRunning 
-                    ? textColor.withOpacity(0.15) 
-                    : textColor.withOpacity(0.4),
-                ), 
-                selectedIcon: Icon(
-                  Icons.bar_chart, 
-                  color: timerService.isRunning 
-                    ? accentColor.withOpacity(0.25) 
-                    : accentColor,
-                ), 
-                label: 'Stats'
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildTimerView(BuildContext context, Color textColor, Color accentColor, Color backgroundColor, TimerService timerService) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final isSmallScreen = screenHeight < 700;
+    final isTablet = screenWidth > 600;
+    
+    // Responsive sizing
+    final headerFontSize = isTablet ? 32.0 : (isSmallScreen ? 22.0 : 26.0);
+    final coinFontSize = isTablet ? 22.0 : (isSmallScreen ? 16.0 : 18.0);
+    final timerSize = isTablet ? 320.0 : (isSmallScreen ? 200.0 : 240.0);
+    final timerFontSize = isTablet ? 48.0 : (isSmallScreen ? 28.0 : 36.0);
+    final characterSize = isTablet ? 48.0 : (isSmallScreen ? 28.0 : 36.0);
+    
     return Column(
       children: [
         // Fixed Header Row with Coins (stays on top)
         Container(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: EdgeInsets.only(bottom: isSmallScreen ? 12 : 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Focus Space',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: textColor.withOpacity(0.7), // More muted
-                  letterSpacing: -0.5,
+              Flexible(
+                child: Text(
+                  'Focus Space',
+                  style: TextStyle(
+                    fontSize: headerFontSize,
+                    fontWeight: FontWeight.w800,
+                    color: textColor.withOpacity(0.7),
+                    letterSpacing: -0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 16 : 12, 
+                    vertical: isTablet ? 8 : 6
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06), // More muted
+                    color: Colors.white.withOpacity(0.06),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.12)), // More muted
+                    border: Border.all(color: Colors.white.withOpacity(0.12)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 20)),
-                      const SizedBox(width: 8),
+                      Text('🪙', style: TextStyle(fontSize: isTablet ? 24 : 20)),
+                      SizedBox(width: isTablet ? 10 : 8),
                       Text(
                         '${timerService.coins}',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: coinFontSize,
                           fontWeight: FontWeight.bold,
-                          color: textColor.withOpacity(0.8), // More muted
+                          color: textColor.withOpacity(0.8),
                         ),
                       ),
                     ],
@@ -260,391 +304,415 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           child: timerService.isRunning 
             ? // When running - full screen centered timer
               Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Timer Display
-                    Container(
-                      width: 320,
-                      height: 320,
-                      alignment: Alignment.center,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Glass sphere background
-                          ClipOval(
-                            child: BackdropFilter(
-                              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                width: 260,
-                                height: 260,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.white.withOpacity(0.15),
-                                      Colors.white.withOpacity(0.02),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          
-                          // Progress indicator
-                          SizedBox(
-                            width: 280,
-                            height: 280,
-                            child: CircularProgressIndicator(
-                              value: timerService.progress,
-                              strokeWidth: 8,
-                              backgroundColor: textColor.withOpacity(0.03), // More muted
-                              valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)), // More muted
-                              strokeCap: StrokeCap.round,
-                            ),
-                          ),
-                          
-                          // Timer content
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Character icon for pomodoro mode
-                              if (timerService.mode == TimerMode.pomodoro)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Text(
-                                    timerService.currentCharacter.icon,
-                                    style: const TextStyle(fontSize: 52),
-                                  ),
-                                ),
-                              // Timer text
-                              Text(
-                                _formatTime(timerService.remainingSeconds, timerService),
-                                style: TextStyle(
-                                  fontSize: 52,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor.withOpacity(0.8), // More muted
-                                  letterSpacing: -2,
-                                  fontFeatures: const [FontFeature.tabularFigures()],
-                                ),
-                              ),
-                              // Category badge
-                              Container(
-                                margin: const EdgeInsets.only(top: 12),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: accentColor.withOpacity(0.06), // More muted
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  timerService.selectedCategory.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: accentColor.withOpacity(0.7), // More muted
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    
-                    // Motivational Quote
-                    if (timerService.currentQuote.isNotEmpty) ...[
-                      const SizedBox(height: 40),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Timer Display
                       Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 32),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.06), // More muted
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.12)), // More muted
-                        ),
-                        child: Column(
+                        width: timerSize + 80,
+                        height: timerSize + 80,
+                        alignment: Alignment.center,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Icon(
-                              Icons.format_quote,
-                              color: accentColor.withOpacity(0.5), // More muted
-                              size: 24,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              timerService.currentQuote,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: textColor.withOpacity(0.7), // More muted
-                                fontStyle: FontStyle.italic,
-                                height: 1.4,
+                            // Glass sphere background
+                            ClipOval(
+                              child: BackdropFilter(
+                                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  width: timerSize,
+                                  height: timerSize,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.15),
+                                        Colors.white.withOpacity(0.02),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
                               ),
+                            ),
+                            
+                            // Progress indicator
+                            SizedBox(
+                              width: timerSize + 20,
+                              height: timerSize + 20,
+                              child: CircularProgressIndicator(
+                                value: timerService.progress,
+                                strokeWidth: isTablet ? 10 : (isSmallScreen ? 6 : 8),
+                                backgroundColor: textColor.withOpacity(0.03),
+                                valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)),
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                            
+                            // Timer content
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Character icon for pomodoro mode
+                                if (timerService.mode == TimerMode.pomodoro)
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: isSmallScreen ? 4.0 : 8.0),
+                                    child: Text(
+                                      timerService.currentCharacter.icon,
+                                      style: TextStyle(fontSize: characterSize),
+                                    ),
+                                  ),
+                                // Timer text
+                                Text(
+                                  _formatTime(timerService.remainingSeconds, timerService),
+                                  style: TextStyle(
+                                    fontSize: timerFontSize,
+                                    fontWeight: FontWeight.w900,
+                                    color: textColor.withOpacity(0.8),
+                                    letterSpacing: isTablet ? -2 : -1,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                  ),
+                                ),
+                                // Category badge
+                                Container(
+                                  margin: EdgeInsets.only(top: isSmallScreen ? 8 : 12),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: isTablet ? 20 : 16, 
+                                    vertical: isTablet ? 8 : 6
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withOpacity(0.06),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    timerService.selectedCategory.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                      fontWeight: FontWeight.w800,
+                                      color: accentColor.withOpacity(0.7),
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
-                    ],
-                    
-                    // End session early button
-                    const SizedBox(height: 40),
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
-                        borderRadius: BorderRadius.circular(12),
-                        splashColor: textColor.withOpacity(0.1),
-                        highlightColor: textColor.withOpacity(0.05),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                      
+                      // Motivational Quote
+                      if (timerService.currentQuote.isNotEmpty) ...[
+                        SizedBox(height: isSmallScreen ? 24 : 40),
+                        Container(
+                          margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+                          padding: EdgeInsets.all(isTablet ? 24 : (isSmallScreen ? 16 : 20)),
                           decoration: BoxDecoration(
-                            // Minimalist theme-aware design
-                            color: textColor.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: textColor.withOpacity(0.15),
-                              width: 1,
-                            ),
+                            color: Colors.white.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withOpacity(0.12)),
                           ),
-                          child: Text(
-                            'End session early',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: textColor.withOpacity(0.8),
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : // When not running - normal layout with controls
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Mode Toggle
-                  Center(
-                    child: SegmentedButton<TimerMode>(
-                      segments: const [
-                        ButtonSegment<TimerMode>(
-                          value: TimerMode.pomodoro,
-                          label: Text('Pomodoro'),
-                          icon: Icon(Icons.timer),
-                        ),
-                        ButtonSegment<TimerMode>(
-                          value: TimerMode.basic,
-                          label: Text('Basic Timer'),
-                          icon: Icon(Icons.watch_later_outlined),
-                        ),
-                      ],
-                      selected: <TimerMode>{timerService.mode},
-                      onSelectionChanged: (Set<TimerMode> newSelection) {
-                        timerService.setMode(newSelection.first);
-                        // Set initial duration for basic mode
-                        if (newSelection.first == TimerMode.basic) {
-                          timerService.setDuration(_sliderValue.toInt());
-                        }
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(MaterialState.selected)) {
-                            return accentColor.withOpacity(0.12); // More muted
-                          }
-                          return Colors.transparent;
-                        }),
-                        foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                          if (states.contains(MaterialState.selected)) {
-                            return accentColor.withOpacity(0.8); // More muted
-                          }
-                          return textColor.withOpacity(0.5); // More muted
-                        }),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  
-                  // Timer Display
-                  Center(
-                    child: Container(
-                      width: 240,
-                      height: 240,
-                      alignment: Alignment.center,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Glass sphere background
-                          ClipOval(
-                            child: BackdropFilter(
-                              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                width: 200,
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.white.withOpacity(0.15),
-                                      Colors.white.withOpacity(0.02),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          
-                          // Progress indicator
-                          SizedBox(
-                            width: 220,
-                            height: 220,
-                            child: CircularProgressIndicator(
-                              value: 1.0,
-                              strokeWidth: 6,
-                              backgroundColor: textColor.withOpacity(0.03), // More muted
-                              valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)), // More muted
-                              strokeCap: StrokeCap.round,
-                            ),
-                          ),
-                          
-                          // Timer content
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
+                          child: Column(
                             children: [
-                              // Character icon for pomodoro mode
-                              if (timerService.mode == TimerMode.pomodoro)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 6.0),
-                                  child: Text(
-                                    timerService.currentCharacter.icon,
-                                    style: const TextStyle(fontSize: 36),
-                                  ),
-                                ),
-                              // Timer text
+                              Icon(
+                                Icons.format_quote,
+                                color: accentColor.withOpacity(0.5),
+                                size: isTablet ? 28 : 24,
+                              ),
+                              SizedBox(height: isSmallScreen ? 6 : 8),
                               Text(
-                                _formatTime(timerService.remainingSeconds, timerService),
+                                timerService.currentQuote,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.w900,
-                                  color: textColor.withOpacity(0.8), // More muted
-                                  letterSpacing: -1,
-                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  fontSize: isTablet ? 18 : (isSmallScreen ? 14 : 16),
+                                  fontWeight: FontWeight.w500,
+                                  color: textColor.withOpacity(0.7),
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.4,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Controls
-                  _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
-                  
-                  const SizedBox(height: 12),
-                  // INPUTS BASED ON MODE
-                  if (timerService.mode == TimerMode.pomodoro) ...[
-                     Row(
-                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                       children: [
-                         _buildPresetButton(context, 25, timerService, textColor, accentColor),
-                         _buildPresetButton(context, 50, timerService, textColor, accentColor),
-                       ],
-                     )
-                  ] else ...[
-                    // Basic Slider
-                    Column(
-                      children: [
-                        Text(
-                          'Duration: ${_sliderValue.toInt()} min',
-                          style: TextStyle(color: textColor.withOpacity(0.6)), // More muted
                         ),
-                        SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: accentColor.withOpacity(0.7), // More muted
-                            inactiveTrackColor: Colors.black.withOpacity(0.06), // More muted
-                            thumbColor: accentColor.withOpacity(0.8), // More muted
-                            overlayColor: accentColor.withOpacity(0.1), // More muted
+                      ],
+                      
+                      // End session early button
+                      SizedBox(height: isSmallScreen ? 24 : 40),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
+                          borderRadius: BorderRadius.circular(12),
+                          splashColor: textColor.withOpacity(0.1),
+                          highlightColor: textColor.withOpacity(0.05),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 16 : 14, 
+                              horizontal: isTablet ? 28 : 24
+                            ),
+                            decoration: BoxDecoration(
+                              color: textColor.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: textColor.withOpacity(0.15),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              'End session early',
+                              style: TextStyle(
+                                fontSize: isTablet ? 17 : 15,
+                                fontWeight: FontWeight.w500,
+                                color: textColor.withOpacity(0.8),
+                                letterSpacing: 0.2,
+                              ),
+                            ),
                           ),
-                          child: Slider(
-                            value: _sliderValue,
-                            min: 5, 
-                            max: 120,
-                            divisions: 23, 
-                            label: '${_sliderValue.toInt()} min',
-                            onChanged: (value) {
-                              setState(() {
-                                _sliderValue = value;
-                              });
-                              // Set duration immediately when slider changes
+                        ),
+                      ),
+                      SizedBox(height: isSmallScreen ? 16 : 24),
+                    ],
+                  ),
+                ),
+              )
+            : // When not running - normal layout with controls
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Mode Toggle
+                      Center(
+                        child: SegmentedButton<TimerMode>(
+                          segments: [
+                            ButtonSegment<TimerMode>(
+                              value: TimerMode.pomodoro,
+                              label: Text('Pomodoro', style: TextStyle(fontSize: isTablet ? 16 : 14)),
+                              icon: Icon(Icons.timer, size: isTablet ? 24 : 20),
+                            ),
+                            ButtonSegment<TimerMode>(
+                              value: TimerMode.basic,
+                              label: Text('Basic Timer', style: TextStyle(fontSize: isTablet ? 16 : 14)),
+                              icon: Icon(Icons.watch_later_outlined, size: isTablet ? 24 : 20),
+                            ),
+                          ],
+                          selected: <TimerMode>{timerService.mode},
+                          onSelectionChanged: (Set<TimerMode> newSelection) {
+                            timerService.setMode(newSelection.first);
+                            if (newSelection.first == TimerMode.basic) {
                               timerService.setDuration(_sliderValue.toInt());
-                            },
+                            }
+                          },
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                              if (states.contains(MaterialState.selected)) {
+                                return accentColor.withOpacity(0.12);
+                              }
+                              return Colors.transparent;
+                            }),
+                            foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                              if (states.contains(MaterialState.selected)) {
+                                return accentColor.withOpacity(0.8);
+                              }
+                              return textColor.withOpacity(0.5);
+                            }),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: isSmallScreen ? 16 : 20),
+                      
+                      // Timer Display
+                      Center(
+                        child: Container(
+                          width: timerSize,
+                          height: timerSize,
+                          alignment: Alignment.center,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Glass sphere background
+                              ClipOval(
+                                child: BackdropFilter(
+                                  filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: Container(
+                                    width: timerSize - 40,
+                                    height: timerSize - 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.white.withOpacity(0.15),
+                                          Colors.white.withOpacity(0.02),
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              
+                              // Progress indicator
+                              SizedBox(
+                                width: timerSize - 20,
+                                height: timerSize - 20,
+                                child: CircularProgressIndicator(
+                                  value: 1.0,
+                                  strokeWidth: isTablet ? 8 : 6,
+                                  backgroundColor: textColor.withOpacity(0.03),
+                                  valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)),
+                                  strokeCap: StrokeCap.round,
+                                ),
+                              ),
+                              
+                              // Timer content
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Character icon for pomodoro mode
+                                  if (timerService.mode == TimerMode.pomodoro)
+                                    Padding(
+                                      padding: EdgeInsets.only(bottom: isSmallScreen ? 4.0 : 6.0),
+                                      child: Text(
+                                        timerService.currentCharacter.icon,
+                                        style: TextStyle(fontSize: characterSize),
+                                      ),
+                                    ),
+                                  // Timer text
+                                  Text(
+                                    _formatTime(timerService.remainingSeconds, timerService),
+                                    style: TextStyle(
+                                      fontSize: timerFontSize,
+                                      fontWeight: FontWeight.w900,
+                                      color: textColor.withOpacity(0.8),
+                                      letterSpacing: isTablet ? -2 : -1,
+                                      fontFeatures: const [FontFeature.tabularFigures()],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(height: isSmallScreen ? 12 : 16),
+
+                      // Controls
+                      _buildCategorySelector(timerService, textColor, accentColor, backgroundColor, isTablet, isSmallScreen),
+                      
+                      SizedBox(height: isSmallScreen ? 8 : 12),
+                      // INPUTS BASED ON MODE
+                      if (timerService.mode == TimerMode.pomodoro) ...[
+                         Row(
+                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                           children: [
+                             _buildPresetButton(context, 25, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                             _buildPresetButton(context, 50, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                           ],
+                         )
+                      ] else ...[
+                        // Basic Slider
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Duration: ${_sliderValue.toInt()} min',
+                                style: TextStyle(
+                                  color: textColor.withOpacity(0.6),
+                                  fontSize: isTablet ? 16 : 14,
+                                ),
+                              ),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  activeTrackColor: accentColor.withOpacity(0.7),
+                                  inactiveTrackColor: Colors.black.withOpacity(0.06),
+                                  thumbColor: accentColor.withOpacity(0.8),
+                                  overlayColor: accentColor.withOpacity(0.1),
+                                  trackHeight: isTablet ? 6 : 4,
+                                ),
+                                child: Slider(
+                                  value: _sliderValue,
+                                  min: 5, 
+                                  max: 120,
+                                  divisions: 23, 
+                                  label: '${_sliderValue.toInt()} min',
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _sliderValue = value;
+                                    });
+                                    timerService.setDuration(_sliderValue.toInt());
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                  ],
 
-                  const Spacer(), // Push button to bottom
-                  
-                  // Action Button
-                  SizedBox(
-                    height: 56,
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: (timerService.remainingSeconds > 0) ? () {
-                        timerService.startTimer();
-                      } : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: (timerService.remainingSeconds > 0) 
-                          ? accentColor.withOpacity(0.8) 
-                          : textColor.withOpacity(0.1),
-                        foregroundColor: (timerService.remainingSeconds > 0) 
-                          ? Colors.white 
-                          : textColor.withOpacity(0.4),
-                        elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
-                        shadowColor: accentColor.withOpacity(0.2),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                      ),
-                      child: Text(
-                        (timerService.remainingSeconds > 0) 
-                          ? 'START FOCUS' 
-                          : 'SELECT DURATION FIRST',
-                        style: TextStyle(
-                          fontSize: (timerService.remainingSeconds > 0) ? 18 : 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
+                      const Spacer(),
+                      
+                      // Action Button
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                        child: SizedBox(
+                          height: isTablet ? 64 : (isSmallScreen ? 48 : 56),
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: (timerService.remainingSeconds > 0) ? () {
+                              timerService.startTimer();
+                            } : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: (timerService.remainingSeconds > 0) 
+                                ? accentColor.withOpacity(0.8) 
+                                : textColor.withOpacity(0.1),
+                              foregroundColor: (timerService.remainingSeconds > 0) 
+                                ? Colors.white 
+                                : textColor.withOpacity(0.4),
+                              elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
+                              shadowColor: accentColor.withOpacity(0.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                            ),
+                            child: Text(
+                              (timerService.remainingSeconds > 0) 
+                                ? 'START FOCUS' 
+                                : 'SELECT DURATION FIRST',
+                              style: TextStyle(
+                                fontSize: isTablet ? 20 : ((timerService.remainingSeconds > 0) ? 18 : 16),
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                      SizedBox(height: isSmallScreen ? 12 : 16),
+                    ],
+                  );
+                },
               ),
         ),
       ],
     );
   }
   
-  Widget _buildPresetButton(BuildContext context, int minutes, TimerService service, Color textColor, Color accentColor) {
+  Widget _buildPresetButton(BuildContext context, int minutes, TimerService service, Color textColor, Color accentColor, bool isTablet, bool isSmallScreen) {
       final isSelected = service.remainingSeconds == minutes * 60;
+      final buttonWidth = isTablet ? 120.0 : (isSmallScreen ? 80.0 : 100.0);
+      final fontSize = isTablet ? 28.0 : (isSmallScreen ? 20.0 : 24.0);
+      final labelFontSize = isTablet ? 13.0 : (isSmallScreen ? 9.0 : 11.0);
+      
       return InkWell(
         onTap: () {
           service.setDuration(minutes);
@@ -652,20 +720,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
-          width: 100,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          width: buttonWidth,
+          padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : (isSmallScreen ? 12 : 16)),
           decoration: BoxDecoration(
-            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.12), // More muted
+            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.12),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? accentColor.withOpacity(0.6) : Colors.white.withOpacity(0.15), // More muted
+              color: isSelected ? accentColor.withOpacity(0.6) : Colors.white.withOpacity(0.15),
               width: 2,
             ),
             boxShadow: isSelected ? [
               BoxShadow(
-                color: accentColor.withOpacity(0.15), // More muted
-                blurRadius: 8, // Reduced blur
-                spreadRadius: 0, // Reduced spread
+                color: accentColor.withOpacity(0.15),
+                blurRadius: 8,
+                spreadRadius: 0,
               )
             ] : [],
           ),
@@ -675,17 +743,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Text(
                 '$minutes',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7), // More muted
+                  color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7),
                 ),
               ),
               Text(
                 'MIN',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: labelFontSize,
                   fontWeight: FontWeight.w600,
-                  color: (isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7)).withOpacity(0.6), // More muted
+                  color: (isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7)).withOpacity(0.6),
                   letterSpacing: 1,
                 ),
               ),
@@ -947,8 +1015,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-  Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor) {
+  Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor, bool isTablet, bool isSmallScreen) {
     if (service.isRunning) return const SizedBox.shrink();
+    
+    final titleFontSize = isTablet ? 17.0 : (isSmallScreen ? 13.0 : 15.0);
+    final categoryFontSize = isTablet ? 15.0 : (isSmallScreen ? 11.0 : 13.0);
+    final iconSize = isTablet ? 24.0 : 20.0;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -959,15 +1031,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Text(
               "Session Goal",
               style: TextStyle(
-                fontSize: 15,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w800,
-                color: textColor.withOpacity(0.3), // More muted
+                color: textColor.withOpacity(0.3),
                 letterSpacing: 1.2,
               ),
             ),
             IconButton(
               onPressed: () => _showEditCategoriesDialog(context, service, textColor, accentColor, backgroundColor),
-              icon: Icon(Icons.settings_suggest_rounded, color: accentColor.withOpacity(0.6), size: 20), // More muted
+              icon: Icon(Icons.settings_suggest_rounded, color: accentColor.withOpacity(0.6), size: iconSize),
               tooltip: 'Manage Categories',
               visualDensity: VisualDensity.compact,
             ),
@@ -975,7 +1047,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 4),
         SizedBox(
-          height: 44,
+          height: isTablet ? 52 : (isSmallScreen ? 36 : 44),
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -992,16 +1064,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 100),
                   curve: Curves.easeOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  margin: const EdgeInsets.only(right: 10),
+                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 20),
+                  margin: EdgeInsets.only(right: isTablet ? 12 : 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? accentColor.withOpacity(0.8) : Colors.white.withOpacity(0.08), // More muted
+                    color: isSelected ? accentColor.withOpacity(0.8) : Colors.white.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: isSelected ? [
                       BoxShadow(
-                        color: accentColor.withOpacity(0.2), // More muted
-                        blurRadius: 8, // Reduced blur
-                        offset: const Offset(0, 2), // Reduced offset
+                        color: accentColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       )
                     ] : [],
                   ),
@@ -1010,9 +1082,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       duration: const Duration(milliseconds: 80),
                       curve: Curves.easeOut,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: categoryFontSize,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : textColor.withOpacity(0.4), // More muted
+                        color: isSelected ? Colors.white : textColor.withOpacity(0.4),
                         letterSpacing: 0.8,
                       ),
                       child: Text(category.toUpperCase()),
