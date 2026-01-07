@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         final currentTheme = timerService.currentTheme;
         
         return MaterialApp(
-          title: 'Study Timer',
+          title: 'Focus Space',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             brightness: currentTheme.id == 'midnight' ? Brightness.dark : Brightness.light, 
