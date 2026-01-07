@@ -611,16 +611,24 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       // Controls
                       _buildCategorySelector(timerService, textColor, accentColor, backgroundColor, isTablet, isSmallScreen),
                       
-                      SizedBox(height: isSmallScreen ? 8 : 12),
+                      SizedBox(height: isSmallScreen ? 16 : 20),
                       // INPUTS BASED ON MODE
                       if (timerService.mode == TimerMode.pomodoro) ...[
-                         Row(
-                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                           children: [
-                             _buildPresetButton(context, 25, timerService, textColor, accentColor, isTablet, isSmallScreen),
-                             _buildPresetButton(context, 50, timerService, textColor, accentColor, isTablet, isSmallScreen),
-                           ],
-                         )
+                        // Make buttons span full width like session goal
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildPresetButton(context, 25, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                              ),
+                              SizedBox(width: isTablet ? 16 : 12),
+                              Expanded(
+                                child: _buildPresetButton(context, 50, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                              ),
+                            ],
+                          ),
+                        )
                       ] else ...[
                         // Basic Slider
                         Padding(

@@ -3,9 +3,14 @@ import 'package:provider/provider.dart';
 import '../services/admob_service.dart';
 import '../timer_service.dart';
 
-class RewardedAdWidget extends StatelessWidget {
+class RewardedAdWidget extends StatefulWidget {
   const RewardedAdWidget({super.key});
 
+  @override
+  State<RewardedAdWidget> createState() => _RewardedAdWidgetState();
+}
+
+class _RewardedAdWidgetState extends State<RewardedAdWidget> {
   @override
   Widget build(BuildContext context) {
     final timerService = Provider.of<TimerService>(context);

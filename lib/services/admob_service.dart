@@ -93,6 +93,10 @@ class AdMobService {
 
   /// Load banner ad for shop page
   void loadBannerAd() {
+    // Dispose existing banner ad if any
+    _bannerAd?.dispose();
+    _isBannerAdLoaded = false;
+    
     _bannerAd = BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
@@ -105,6 +109,7 @@ class AdMobService {
         onAdFailedToLoad: (ad, error) {
           _isBannerAdLoaded = false;
           ad.dispose();
+          _bannerAd = null;
           if (kDebugMode) print('Banner ad failed to load: $error');
           // Retry after 30 seconds
           Future.delayed(const Duration(seconds: 30), () => loadBannerAd());
