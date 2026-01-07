@@ -340,13 +340,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         // Content based on timer state
         Expanded(
           child: timerService.isRunning 
-            ? // When running - vertically centered timer with proper spacing
+            ? // When running - EVENLY DISTRIBUTED
               Column(
                 children: [
-                  // Top flexible spacer
-                  const Flexible(flex: 2, child: SizedBox()),
+                  // Even top spacing
+                  const Flexible(flex: 1, child: SizedBox()),
                   
-                  // Main timer content - centered
+                  // Main timer content
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -487,8 +487,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ],
                   ),
                   
-                  // Middle flexible spacer
-                  const Flexible(flex: 3, child: SizedBox()),
+                  // Even spacing for centering
+                  const Flexible(flex: 1, child: SizedBox()),
                   
                   // End session early button
                   Material(
@@ -524,11 +524,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                   ),
                   
-                  // Bottom flexible spacer
-                  const Flexible(flex: 2, child: SizedBox()),
+                  // Even bottom spacing - EVENLY DISTRIBUTED
+                  const Flexible(flex: 1, child: SizedBox()),
                 ],
               )
-            : // When not running - normal layout with controls
+            : // When not running - evenly distributed and vertically centered layout
               LayoutBuilder(
                 builder: (context, constraints) {
                   final availableHeight = constraints.maxHeight;
@@ -536,50 +536,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Top spacer for breathing room
-                      SizedBox(height: math.max(20.0, 32.0 * finalScale)),
-                      
-                      // Mode Toggle
-                      Center(
-                        child: SegmentedButton<TimerMode>(
-                          segments: [
-                            ButtonSegment<TimerMode>(
-                              value: TimerMode.pomodoro,
-                              label: Text('Pomodoro', style: TextStyle(fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0))),
-                              icon: Icon(Icons.timer, size: math.max(20.0, 24.0 * finalScale).clamp(18.0, 28.0)),
-                            ),
-                            ButtonSegment<TimerMode>(
-                              value: TimerMode.basic,
-                              label: Text('Basic Timer', style: TextStyle(fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0))),
-                              icon: Icon(Icons.watch_later_outlined, size: math.max(20.0, 24.0 * finalScale).clamp(18.0, 28.0)),
-                            ),
-                          ],
-                          selected: <TimerMode>{timerService.mode},
-                          onSelectionChanged: (Set<TimerMode> newSelection) {
-                            timerService.setMode(newSelection.first);
-                            if (newSelection.first == TimerMode.basic) {
-                              timerService.setDuration(_sliderValue.toInt());
-                            }
-                          },
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return accentColor.withOpacity(0.12);
-                              }
-                              return Colors.transparent;
-                            }),
-                            foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                              if (states.contains(MaterialState.selected)) {
-                                return accentColor.withOpacity(0.8);
-                              }
-                              return textColor.withOpacity(0.5);
-                            }),
-                          ),
-                        ),
-                      ),
-
-                      // Spacer between mode toggle and timer
-                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
+                      // Smaller top spacing
+                      const Flexible(flex: 1, child: SizedBox()),
                       
                       // Timer Display - Main focal point
                       Center(
@@ -640,7 +598,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                       child: Text(
                                         timerService.currentCharacter.icon,
                                         style: TextStyle(
-                                          fontSize: (characterSize * 0.8).clamp(18.0, 35.0), // Increased from 0.7 and higher min
+                                          fontSize: (characterSize * 0.8).clamp(18.0, 35.0),
                                         ),
                                       ),
                                     ),
@@ -662,73 +620,76 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      // Spacer between timer and controls
-                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
+                      // Moderate spacing between timer and controls
+                      const Flexible(flex: 2, child: SizedBox()),
 
-                      // Controls
-                      _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
-                      
-                      SizedBox(height: math.max(16.0, 24.0 * finalScale)),
-                      
-                      // INPUTS BASED ON MODE
-                      if (timerService.mode == TimerMode.pomodoro) ...[
-                        // Make buttons span full width like session goal
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
+                      // Controls section with proper spacing
+                      Column(
+                        children: [
+                          _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
+                          
+                          SizedBox(height: math.max(20.0, 32.0 * finalScale)),
+                          
+                          // INPUTS BASED ON MODE
+                          if (timerService.mode == TimerMode.pomodoro) ...[
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
+                                  ),
+                                  SizedBox(width: math.max(16.0, 24.0 * finalScale)),
+                                  Expanded(
+                                    child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: math.max(12.0, 20.0 * finalScale)),
-                              Expanded(
-                                child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
+                            ),
+                          ] else ...[
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Duration: ${_sliderValue.toInt()} min',
+                                    style: TextStyle(
+                                      color: textColor.withOpacity(0.6),
+                                      fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0),
+                                    ),
+                                  ),
+                                  SizedBox(height: math.max(8.0, 12.0 * finalScale)),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      activeTrackColor: accentColor.withOpacity(0.7),
+                                      inactiveTrackColor: Colors.black.withOpacity(0.06),
+                                      thumbColor: accentColor.withOpacity(0.8),
+                                      overlayColor: accentColor.withOpacity(0.1),
+                                      trackHeight: math.max(4.0, 6.0 * finalScale).clamp(3.0, 8.0),
+                                    ),
+                                    child: Slider(
+                                      value: _sliderValue,
+                                      min: 5, 
+                                      max: 120,
+                                      divisions: 23, 
+                                      label: '${_sliderValue.toInt()} min',
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _sliderValue = value;
+                                        });
+                                        timerService.setDuration(_sliderValue.toInt());
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                      ] else ...[
-                        // Basic Slider
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                          child: Column(
-                            children: [
-                              Text(
-                                'Duration: ${_sliderValue.toInt()} min',
-                                style: TextStyle(
-                                  color: textColor.withOpacity(0.6),
-                                  fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0),
-                                ),
-                              ),
-                              SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: accentColor.withOpacity(0.7),
-                                  inactiveTrackColor: Colors.black.withOpacity(0.06),
-                                  thumbColor: accentColor.withOpacity(0.8),
-                                  overlayColor: accentColor.withOpacity(0.1),
-                                  trackHeight: math.max(4.0, 6.0 * finalScale).clamp(3.0, 8.0),
-                                ),
-                                child: Slider(
-                                  value: _sliderValue,
-                                  min: 5, 
-                                  max: 120,
-                                  divisions: 23, 
-                                  label: '${_sliderValue.toInt()} min',
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _sliderValue = value;
-                                    });
-                                    timerService.setDuration(_sliderValue.toInt());
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                            ),
+                          ],
+                        ],
+                      ),
 
-                      // Flexible spacer before action button - creates pleasing visual balance
-                      const Spacer(),
+                      // More spacing to push button down properly
+                      const Flexible(flex: 3, child: SizedBox()),
                       
                       // Action Button
                       Padding(
@@ -767,8 +728,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       
-                      // Bottom spacer for breathing room
-                      SizedBox(height: math.max(20.0, 32.0 * finalScale)),
+                      // Small bottom spacing - proportional
+                      const Flexible(flex: 1, child: SizedBox()),
                     ],
                   );
                 },

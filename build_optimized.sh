@@ -1,39 +1,47 @@
 #!/bin/bash
 
-echo "🚀 Building highly optimized Focus Space APK..."
+echo "🚀 Building ultra-optimized Focus Space APK..."
 
 # Clean previous builds
 echo "🧹 Cleaning previous builds..."
 flutter clean
 flutter pub get
 
-# Build with maximum optimization
-echo "📦 Building with maximum optimization..."
+# Build split APKs for different architectures (smaller individual files)
+echo "📦 Building split APKs for maximum size optimization..."
 flutter build apk \
   --release \
   --shrink \
-  --target-platform android-arm64 \
+  --obfuscate \
+  --split-debug-info=build/debug-info \
   --tree-shake-icons \
-  --dart-define=flutter.inspector.structuredErrors=false
+  --target-platform android-arm64,android-arm \
+  --split-per-abi \
+  --dart-define=flutter.inspector.structuredErrors=false \
+  --dart-define=dart.vm.product=true
 
-echo "✅ Optimized APK built!"
+echo "✅ Optimized APKs built!"
 
-# Check actual file size
-if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-    echo "📍 Location: build/app/outputs/flutter-apk/app-release.apk"
-    size=$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1)
-    echo "📏 Actual APK Size: $size"
-    
-    # Get detailed size info
-    ls -lh build/app/outputs/flutter-apk/app-release.apk
-    
-    # Analyze APK contents
+# Check actual file sizes
+echo "📍 APK Locations:"
+if [ -d "build/app/outputs/flutter-apk" ]; then
     echo ""
-    echo "🔍 Analyzing APK contents..."
-    if command -v unzip &> /dev/null; then
-        echo "Top 10 largest files in APK:"
-        unzip -l build/app/outputs/flutter-apk/app-release.apk | sort -k1 -nr | head -15
+    echo "📏 APK Sizes:"
+    ls -lh build/app/outputs/flutter-apk/*.apk
+    
+    echo ""
+    echo "🎯 Recommended APKs for distribution:"
+    echo "• arm64-v8a (64-bit devices): app-arm64-v8a-release.apk"
+    echo "• armeabi-v7a (32-bit devices): app-armeabi-v7a-release.apk"
+    echo "• Universal (all devices): app-release.apk"
+    
+    # Calculate total size savings
+    if [ -f "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" ]; then
+        arm64_size=$(stat -f%z build/app/outputs/flutter-apk/app-arm64-v8a-release.apk 2>/dev/null || stat -c%s build/app/outputs/flutter-apk/app-arm64-v8a-release.apk)
+        arm64_mb=$((arm64_size / 1024 / 1024))
+        echo ""
+        echo "🎉 ARM64 APK size: ${arm64_mb}MB (optimized for most modern devices)"
     fi
 else
-    echo "❌ APK not found!"
+    echo "❌ APK directory not found!"
 fi

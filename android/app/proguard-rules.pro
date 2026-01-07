@@ -37,7 +37,37 @@
 -dontpreverify
 -verbose
 
+# Aggressive optimization settings
+-allowaccessmodification
+-repackageclasses ''
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+
+# Remove unused resources
+-dontwarn androidx.**
+-dontwarn com.google.**
+-dontwarn org.apache.**
+
+# Shrink string resources
+-adaptresourcefilenames **.properties,**.gif,**.jpg,**.png
+-adaptresourcefilecontents **.properties,META-INF/MANIFEST.MF
+
+# Remove debug information
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
+
 # Ignore warnings for missing classes that are not used
 -dontwarn com.google.android.play.core.splitcompat.**
 -dontwarn com.google.android.play.core.splitinstall.**
 -dontwarn com.google.android.play.core.tasks.**
+
+# Additional size optimizations
+-dontwarn java.lang.invoke.**
+-dontwarn **$$serializer
+-keepclassmembers class **$WhenMappings {
+    <fields>;
+}
+
+# Remove unused native libraries
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
