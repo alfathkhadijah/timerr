@@ -429,215 +429,214 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
               )
             : // When not running - normal layout with controls
-              SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Mode Toggle
-                    Center(
-                      child: SegmentedButton<TimerMode>(
-                        segments: const [
-                          ButtonSegment<TimerMode>(
-                            value: TimerMode.pomodoro,
-                            label: Text('Pomodoro'),
-                            icon: Icon(Icons.timer),
-                          ),
-                          ButtonSegment<TimerMode>(
-                            value: TimerMode.basic,
-                            label: Text('Basic Timer'),
-                            icon: Icon(Icons.watch_later_outlined),
-                          ),
-                        ],
-                        selected: <TimerMode>{timerService.mode},
-                        onSelectionChanged: (Set<TimerMode> newSelection) {
-                          timerService.setMode(newSelection.first);
-                          // Set initial duration for basic mode
-                          if (newSelection.first == TimerMode.basic) {
-                            timerService.setDuration(_sliderValue.toInt());
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Mode Toggle
+                  Center(
+                    child: SegmentedButton<TimerMode>(
+                      segments: const [
+                        ButtonSegment<TimerMode>(
+                          value: TimerMode.pomodoro,
+                          label: Text('Pomodoro'),
+                          icon: Icon(Icons.timer),
+                        ),
+                        ButtonSegment<TimerMode>(
+                          value: TimerMode.basic,
+                          label: Text('Basic Timer'),
+                          icon: Icon(Icons.watch_later_outlined),
+                        ),
+                      ],
+                      selected: <TimerMode>{timerService.mode},
+                      onSelectionChanged: (Set<TimerMode> newSelection) {
+                        timerService.setMode(newSelection.first);
+                        // Set initial duration for basic mode
+                        if (newSelection.first == TimerMode.basic) {
+                          timerService.setDuration(_sliderValue.toInt());
+                        }
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                          if (states.contains(MaterialState.selected)) {
+                            return accentColor.withOpacity(0.12); // More muted
                           }
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(MaterialState.selected)) {
-                              return accentColor.withOpacity(0.12); // More muted
-                            }
-                            return Colors.transparent;
-                          }),
-                          foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(MaterialState.selected)) {
-                              return accentColor.withOpacity(0.8); // More muted
-                            }
-                            return textColor.withOpacity(0.5); // More muted
-                          }),
-                        ),
+                          return Colors.transparent;
+                        }),
+                        foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                          if (states.contains(MaterialState.selected)) {
+                            return accentColor.withOpacity(0.8); // More muted
+                          }
+                          return textColor.withOpacity(0.5); // More muted
+                        }),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 32),
-                    
-                    // Timer Display
-                    Center(
-                      child: Container(
-                        width: 300,
-                        height: 300,
+                  const SizedBox(height: 20),
+                  
+                  // Timer Display
+                  Center(
+                    child: Container(
+                      width: 240,
+                      height: 240,
+                      alignment: Alignment.center,
+                      child: Stack(
                         alignment: Alignment.center,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Glass sphere background
-                            ClipOval(
-                              child: BackdropFilter(
-                                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                child: Container(
-                                  width: 240,
-                                  height: 240,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Colors.white.withOpacity(0.15),
-                                        Colors.white.withOpacity(0.02),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            
-                            // Progress indicator
-                            SizedBox(
-                              width: 260,
-                              height: 260,
-                              child: CircularProgressIndicator(
-                                value: 1.0,
-                                strokeWidth: 8,
-                                backgroundColor: textColor.withOpacity(0.03), // More muted
-                                valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)), // More muted
-                                strokeCap: StrokeCap.round,
-                              ),
-                            ),
-                            
-                            // Timer content
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Character icon for pomodoro mode
-                                if (timerService.mode == TimerMode.pomodoro)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 8.0),
-                                    child: Text(
-                                      timerService.currentCharacter.icon,
-                                      style: const TextStyle(fontSize: 48),
-                                    ),
-                                  ),
-                                // Timer text
-                                Text(
-                                  _formatTime(timerService.remainingSeconds, timerService),
-                                  style: TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w900,
-                                    color: textColor.withOpacity(0.8), // More muted
-                                    letterSpacing: -2,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Controls
-                    _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
-                    
-                    const SizedBox(height: 16),
-                    // INPUTS BASED ON MODE
-                    if (timerService.mode == TimerMode.pomodoro) ...[
-                       Row(
-                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                         children: [
-                           _buildPresetButton(context, 25, timerService, textColor, accentColor),
-                           _buildPresetButton(context, 50, timerService, textColor, accentColor),
-                         ],
-                       )
-                    ] else ...[
-                      // Basic Slider
-                      Column(
                         children: [
-                          Text(
-                            'Duration: ${_sliderValue.toInt()} min',
-                            style: TextStyle(color: textColor.withOpacity(0.6)), // More muted
+                          // Glass sphere background
+                          ClipOval(
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                width: 200,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.02),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              activeTrackColor: accentColor.withOpacity(0.7), // More muted
-                              inactiveTrackColor: Colors.black.withOpacity(0.06), // More muted
-                              thumbColor: accentColor.withOpacity(0.8), // More muted
-                              overlayColor: accentColor.withOpacity(0.1), // More muted
+                          
+                          // Progress indicator
+                          SizedBox(
+                            width: 220,
+                            height: 220,
+                            child: CircularProgressIndicator(
+                              value: 1.0,
+                              strokeWidth: 6,
+                              backgroundColor: textColor.withOpacity(0.03), // More muted
+                              valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)), // More muted
+                              strokeCap: StrokeCap.round,
                             ),
-                            child: Slider(
-                              value: _sliderValue,
-                              min: 5, 
-                              max: 120,
-                              divisions: 23, 
-                              label: '${_sliderValue.toInt()} min',
-                              onChanged: (value) {
-                                setState(() {
-                                  _sliderValue = value;
-                                });
-                                // Set duration immediately when slider changes
-                                timerService.setDuration(_sliderValue.toInt());
-                              },
-                            ),
+                          ),
+                          
+                          // Timer content
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Character icon for pomodoro mode
+                              if (timerService.mode == TimerMode.pomodoro)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6.0),
+                                  child: Text(
+                                    timerService.currentCharacter.icon,
+                                    style: const TextStyle(fontSize: 36),
+                                  ),
+                                ),
+                              // Timer text
+                              Text(
+                                _formatTime(timerService.remainingSeconds, timerService),
+                                style: TextStyle(
+                                  fontSize: 36,
+                                  fontWeight: FontWeight.w900,
+                                  color: textColor.withOpacity(0.8), // More muted
+                                  letterSpacing: -1,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  ),
 
-                    const SizedBox(height: 24),
-                    // Action Button
-                    SizedBox(
-                      height: 56,
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: (timerService.remainingSeconds > 0) ? () {
-                          timerService.startTimer();
-                        } : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: (timerService.remainingSeconds > 0) 
-                            ? accentColor.withOpacity(0.8) 
-                            : textColor.withOpacity(0.1),
-                          foregroundColor: (timerService.remainingSeconds > 0) 
-                            ? Colors.white 
-                            : textColor.withOpacity(0.4),
-                          elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
-                          shadowColor: accentColor.withOpacity(0.2),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  const SizedBox(height: 16),
+
+                  // Controls
+                  _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
+                  
+                  const SizedBox(height: 12),
+                  // INPUTS BASED ON MODE
+                  if (timerService.mode == TimerMode.pomodoro) ...[
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                       children: [
+                         _buildPresetButton(context, 25, timerService, textColor, accentColor),
+                         _buildPresetButton(context, 50, timerService, textColor, accentColor),
+                       ],
+                     )
+                  ] else ...[
+                    // Basic Slider
+                    Column(
+                      children: [
+                        Text(
+                          'Duration: ${_sliderValue.toInt()} min',
+                          style: TextStyle(color: textColor.withOpacity(0.6)), // More muted
                         ),
-                        child: Text(
-                          (timerService.remainingSeconds > 0) 
-                            ? 'START FOCUS' 
-                            : 'SELECT DURATION FIRST',
-                          style: TextStyle(
-                            fontSize: (timerService.remainingSeconds > 0) ? 18 : 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: accentColor.withOpacity(0.7), // More muted
+                            inactiveTrackColor: Colors.black.withOpacity(0.06), // More muted
+                            thumbColor: accentColor.withOpacity(0.8), // More muted
+                            overlayColor: accentColor.withOpacity(0.1), // More muted
                           ),
+                          child: Slider(
+                            value: _sliderValue,
+                            min: 5, 
+                            max: 120,
+                            divisions: 23, 
+                            label: '${_sliderValue.toInt()} min',
+                            onChanged: (value) {
+                              setState(() {
+                                _sliderValue = value;
+                              });
+                              // Set duration immediately when slider changes
+                              timerService.setDuration(_sliderValue.toInt());
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const Spacer(), // Push button to bottom
+                  
+                  // Action Button
+                  SizedBox(
+                    height: 56,
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: (timerService.remainingSeconds > 0) ? () {
+                        timerService.startTimer();
+                      } : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: (timerService.remainingSeconds > 0) 
+                          ? accentColor.withOpacity(0.8) 
+                          : textColor.withOpacity(0.1),
+                        foregroundColor: (timerService.remainingSeconds > 0) 
+                          ? Colors.white 
+                          : textColor.withOpacity(0.4),
+                        elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
+                        shadowColor: accentColor.withOpacity(0.2),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      ),
+                      child: Text(
+                        (timerService.remainingSeconds > 0) 
+                          ? 'START FOCUS' 
+                          : 'SELECT DURATION FIRST',
+                        style: TextStyle(
+                          fontSize: (timerService.remainingSeconds > 0) ? 18 : 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
         ),
       ],
