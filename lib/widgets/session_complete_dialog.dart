@@ -120,17 +120,10 @@ class SessionCompleteDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      theme.accent.withOpacity(0.1),
-                      theme.accent.withOpacity(0.05),
-                    ],
-                  ),
+                  color: theme.textColor.withOpacity(0.03),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: theme.accent.withOpacity(0.3),
+                    color: theme.textColor.withOpacity(0.08),
                     width: 1,
                   ),
                 ),
@@ -141,7 +134,7 @@ class SessionCompleteDialog extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: theme.accent.withOpacity(0.2),
+                            color: theme.textColor.withOpacity(0.06),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text('🎁', style: TextStyle(fontSize: 20)),
@@ -178,19 +171,29 @@ class SessionCompleteDialog extends StatelessWidget {
                       child: ElevatedButton.icon(
                         onPressed: () => _watchAdForDoubleCoins(context, timerService, adMobService),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.accent,
-                          foregroundColor: Colors.white,
-                          elevation: 4,
+                          backgroundColor: theme.accent.withOpacity(0.08),
+                          foregroundColor: theme.accent.withOpacity(0.8),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          side: BorderSide(
+                            color: theme.accent.withOpacity(0.2),
+                            width: 1,
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        icon: const Icon(Icons.play_arrow, size: 20),
-                        label: const Text(
+                        icon: Icon(
+                          Icons.play_arrow_rounded, 
+                          size: 18,
+                          color: theme.accent.withOpacity(0.7),
+                        ),
+                        label: Text(
                           'WATCH AD (2X COINS)',
                           style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.5,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                            color: theme.accent.withOpacity(0.8),
                           ),
                         ),
                       ),
@@ -242,16 +245,22 @@ class SessionCompleteDialog extends StatelessWidget {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                const Text('🎉 ', style: TextStyle(fontSize: 20)),
-                Text('Coins doubled! You earned ${coinsEarned * 2} coins total!'),
-              ],
+            content: Text(
+              'Coins doubled! You earned ${coinsEarned * 2} coins total!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.1,
+                color: Colors.white.withOpacity(0.95),
+                fontSize: 15,
+              ),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: const Color(0xFF6B8E6B), // Muted sage green
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 5),
+            margin: const EdgeInsets.all(16),
+            elevation: 2,
           ),
         );
       },

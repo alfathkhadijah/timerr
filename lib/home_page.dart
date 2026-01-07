@@ -451,6 +451,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         selected: <TimerMode>{timerService.mode},
                         onSelectionChanged: (Set<TimerMode> newSelection) {
                           timerService.setMode(newSelection.first);
+                          // Set initial duration for basic mode
+                          if (newSelection.first == TimerMode.basic) {
+                            timerService.setDuration(_sliderValue.toInt());
+                          }
                         },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
@@ -590,6 +594,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 setState(() {
                                   _sliderValue = value;
                                 });
+                                // Set duration immediately when slider changes
+                                timerService.setDuration(_sliderValue.toInt());
                               },
                             ),
                           ),
@@ -603,30 +609,28 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       height: 56,
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (timerService.mode == TimerMode.basic) {
-                            timerService.setDuration(_sliderValue.toInt());
-                            timerService.startTimer();
-                          } else {
-                            if (timerService.remainingSeconds == 0) {
-                              timerService.setDuration(25);
-                            }
-                            timerService.startTimer();
-                          }
-                        },
+                        onPressed: (timerService.remainingSeconds > 0) ? () {
+                          timerService.startTimer();
+                        } : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: accentColor.withOpacity(0.8), // More muted
-                          foregroundColor: Colors.white,
-                          elevation: 4, // Reduced elevation
-                          shadowColor: accentColor.withOpacity(0.2), // More muted
+                          backgroundColor: (timerService.remainingSeconds > 0) 
+                            ? accentColor.withOpacity(0.8) 
+                            : textColor.withOpacity(0.1),
+                          foregroundColor: (timerService.remainingSeconds > 0) 
+                            ? Colors.white 
+                            : textColor.withOpacity(0.4),
+                          elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
+                          shadowColor: accentColor.withOpacity(0.2),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                         ),
-                        child: const Text(
-                          'START FOCUS',
+                        child: Text(
+                          (timerService.remainingSeconds > 0) 
+                            ? 'START FOCUS' 
+                            : 'SELECT DURATION FIRST',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: (timerService.remainingSeconds > 0) ? 18 : 16,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
+                            letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
                           ),
                         ),
                       ),
