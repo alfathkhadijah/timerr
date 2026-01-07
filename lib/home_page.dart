@@ -18,31 +18,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-  late AnimationController _floatingController;
-  late AnimationController _pulseController;
   double _sliderValue = 25;
   int _currentIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _floatingController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _floatingController.dispose();
-    _pulseController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +37,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           if (currentTheme.backgroundImagePath != null)
             Positioned.fill(
               child: Opacity(
-                opacity: 0.15, // Subtle background
+                opacity: 0.15,
                 child: Image.asset(
                   currentTheme.backgroundImagePath!,
                   fit: BoxFit.cover,
@@ -74,68 +51,147 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           // Main Content Layer
           SafeArea(
             child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 450),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 400),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: KeyedSubtree(
-                  key: ValueKey<int>(_currentIndex),
-                  child: _currentIndex == 0 
-                    ? _buildTimerView(context, textColor, accentColor, backgroundColor)
-                    : _currentIndex == 1 
-                      ? const TodoPage()
-                      : _currentIndex == 2
-                        ? const ShopPage() 
-                        : const StatsPage(),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 450),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey<int>(_currentIndex),
+                      child: _currentIndex == 0 
+                        ? _buildTimerView(context, textColor, accentColor, backgroundColor, timerService)
+                        : _currentIndex == 1 
+                          ? const TodoPage()
+                          : _currentIndex == 2
+                            ? const ShopPage() 
+                            : const StatsPage(),
+                    ),
+                  ),
                 ),
               ),
             ),
-            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>((states) {
+              if (states.contains(MaterialState.selected)) {
+                return TextStyle(
+                  color: accentColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                );
+              }
+              return TextStyle(
+                color: timerService.isRunning ? textColor.withOpacity(0.25) : textColor.withOpacity(0.5),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              );
+            }),
           ),
         ),
-      ],
-    ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1))),
-        ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (int index) {
-             setState(() {
-               _currentIndex = index;
-             });
-          },
-          backgroundColor: Colors.transparent,
-          indicatorColor: accentColor.withOpacity(0.2),
-          elevation: 0,
-          height: 65,
-          destinations: const [
-             NavigationDestination(icon: Icon(Icons.timer_outlined), selectedIcon: Icon(Icons.timer), label: 'Timer'),
-             NavigationDestination(icon: Icon(Icons.checklist_outlined), selectedIcon: Icon(Icons.checklist), label: 'Tasks'),
-             NavigationDestination(icon: Icon(Icons.shopping_bag_outlined), selectedIcon: Icon(Icons.shopping_bag), label: 'Shop'),
-             NavigationDestination(icon: Icon(Icons.bar_chart_outlined), selectedIcon: Icon(Icons.bar_chart), label: 'Stats'),
-          ],
+        child: Container(
+          decoration: BoxDecoration(
+            // Very soft, barely visible background
+            color: textColor.withOpacity(0.02),
+            border: Border(
+              top: BorderSide(
+                color: textColor.withOpacity(0.06),
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (int index) {
+              if (!timerService.isRunning) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              }
+            },
+            backgroundColor: Colors.transparent,
+            indicatorColor: accentColor.withOpacity(0.08),
+            elevation: 0,
+            height: 65,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              NavigationDestination(
+                icon: Icon(
+                  Icons.timer_outlined, 
+                  color: textColor.withOpacity(0.4),
+                ), 
+                selectedIcon: Icon(
+                  Icons.timer, 
+                  color: accentColor,
+                ), 
+                label: 'Timer'
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.checklist_outlined, 
+                  color: timerService.isRunning 
+                    ? textColor.withOpacity(0.15) 
+                    : textColor.withOpacity(0.4),
+                ), 
+                selectedIcon: Icon(
+                  Icons.checklist, 
+                  color: timerService.isRunning 
+                    ? accentColor.withOpacity(0.25) 
+                    : accentColor,
+                ), 
+                label: 'Tasks'
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.shopping_bag_outlined, 
+                  color: timerService.isRunning 
+                    ? textColor.withOpacity(0.15) 
+                    : textColor.withOpacity(0.4),
+                ), 
+                selectedIcon: Icon(
+                  Icons.shopping_bag, 
+                  color: timerService.isRunning 
+                    ? accentColor.withOpacity(0.25) 
+                    : accentColor,
+                ), 
+                label: 'Shop'
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  Icons.bar_chart_outlined, 
+                  color: timerService.isRunning 
+                    ? textColor.withOpacity(0.15) 
+                    : textColor.withOpacity(0.4),
+                ), 
+                selectedIcon: Icon(
+                  Icons.bar_chart, 
+                  color: timerService.isRunning 
+                    ? accentColor.withOpacity(0.25) 
+                    : accentColor,
+                ), 
+                label: 'Stats'
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTimerView(BuildContext context, Color textColor, Color accentColor, Color backgroundColor) {
-    final timerService = Provider.of<TimerService>(context);
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header Row with Coins
-          Row(
+  Widget _buildTimerView(BuildContext context, Color textColor, Color accentColor, Color backgroundColor, TimerService timerService) {
+    return Column(
+      children: [
+        // Fixed Header Row with Coins (stays on top)
+        Container(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -143,7 +199,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: textColor.withOpacity(0.9),
+                  color: textColor.withOpacity(0.7), // More muted
                   letterSpacing: -0.5,
                 ),
               ),
@@ -152,9 +208,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withOpacity(0.06), // More muted
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    border: Border.all(color: Colors.white.withOpacity(0.12)), // More muted
                   ),
                   child: Row(
                     children: [
@@ -165,7 +221,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: textColor,
+                          color: textColor.withOpacity(0.8), // More muted
                         ),
                       ),
                     ],
@@ -174,340 +230,390 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ],
           ),
-          
-          const SizedBox(height: 20),
-          
-          // Mode Toggle
-          if (!timerService.isRunning)
-            Center(
-              child: SegmentedButton<TimerMode>(
-                segments: const [
-                  ButtonSegment<TimerMode>(
-                    value: TimerMode.pomodoro,
-                    label: Text('Pomodoro'),
-                    icon: Icon(Icons.timer),
-                  ),
-                  ButtonSegment<TimerMode>(
-                    value: TimerMode.basic,
-                    label: Text('Basic Timer'),
-                    icon: Icon(Icons.watch_later_outlined),
-                  ),
-                ],
-                selected: <TimerMode>{timerService.mode},
-                onSelectionChanged: (Set<TimerMode> newSelection) {
-                  timerService.setMode(newSelection.first);
-                },
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return accentColor.withOpacity(0.2);
-                    }
-                    return Colors.transparent;
-                  }),
-                  foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
-                    if (states.contains(MaterialState.selected)) {
-                      return accentColor;
-                    }
-                    return textColor.withOpacity(0.7);
-                  }),
+        ),
+        
+        // Content based on timer state
+        Expanded(
+          child: timerService.isRunning 
+            ? // When running - full screen centered timer
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Timer Display
+                    Container(
+                      width: 320,
+                      height: 320,
+                      alignment: Alignment.center,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Glass sphere background
+                          ClipOval(
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                              child: Container(
+                                width: 260,
+                                height: 260,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.02),
+                                    ],
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          
+                          // Progress indicator
+                          SizedBox(
+                            width: 280,
+                            height: 280,
+                            child: CircularProgressIndicator(
+                              value: timerService.progress,
+                              strokeWidth: 8,
+                              backgroundColor: textColor.withOpacity(0.03), // More muted
+                              valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)), // More muted
+                              strokeCap: StrokeCap.round,
+                            ),
+                          ),
+                          
+                          // Timer content
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Character icon for pomodoro mode
+                              if (timerService.mode == TimerMode.pomodoro)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Text(
+                                    timerService.currentCharacter.icon,
+                                    style: const TextStyle(fontSize: 52),
+                                  ),
+                                ),
+                              // Timer text
+                              Text(
+                                _formatTime(timerService.remainingSeconds, timerService),
+                                style: TextStyle(
+                                  fontSize: 52,
+                                  fontWeight: FontWeight.w900,
+                                  color: textColor.withOpacity(0.8), // More muted
+                                  letterSpacing: -2,
+                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                ),
+                              ),
+                              // Category badge
+                              Container(
+                                margin: const EdgeInsets.only(top: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: accentColor.withOpacity(0.06), // More muted
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Text(
+                                  timerService.selectedCategory.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: accentColor.withOpacity(0.7), // More muted
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Motivational Quote
+                    if (timerService.currentQuote.isNotEmpty) ...[
+                      const SizedBox(height: 40),
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 32),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06), // More muted
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.white.withOpacity(0.12)), // More muted
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.format_quote,
+                              color: accentColor.withOpacity(0.5), // More muted
+                              size: 24,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              timerService.currentQuote,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: textColor.withOpacity(0.7), // More muted
+                                fontStyle: FontStyle.italic,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
+                    // End session early button
+                    const SizedBox(height: 40),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: textColor.withOpacity(0.1),
+                        highlightColor: textColor.withOpacity(0.05),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+                          decoration: BoxDecoration(
+                            // Minimalist theme-aware design
+                            color: textColor.withOpacity(0.06),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: textColor.withOpacity(0.15),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            'End session early',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: textColor.withOpacity(0.8),
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-  
-          const SizedBox(height: 32),
-          
-          // Timer Display
-          AnimatedBuilder(
-            animation: _floatingController,
-            builder: (context, child) {
-              return Transform.translate(
-                offset: Offset(0, 10 * sin(_floatingController.value * 2 * pi)),
-                child: child,
-              );
-            },
-            child: Center(
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: 320,
-                  height: 320,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Focus Pulse Glow
-                      AnimatedBuilder(
-                        animation: _pulseController,
-                        builder: (context, child) {
-                          return Container(
-                            width: 260 + (20 * _pulseController.value),
-                            height: 260 + (20 * _pulseController.value),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: accentColor.withOpacity(timerService.isRunning ? 0.2 * _pulseController.value : 0.05),
-                                  blurRadius: 60 + (30 * _pulseController.value),
-                                  spreadRadius: 2 + (5 * _pulseController.value),
+              )
+            : // When not running - normal layout with controls
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Mode Toggle
+                    Center(
+                      child: SegmentedButton<TimerMode>(
+                        segments: const [
+                          ButtonSegment<TimerMode>(
+                            value: TimerMode.pomodoro,
+                            label: Text('Pomodoro'),
+                            icon: Icon(Icons.timer),
+                          ),
+                          ButtonSegment<TimerMode>(
+                            value: TimerMode.basic,
+                            label: Text('Basic Timer'),
+                            icon: Icon(Icons.watch_later_outlined),
+                          ),
+                        ],
+                        selected: <TimerMode>{timerService.mode},
+                        onSelectionChanged: (Set<TimerMode> newSelection) {
+                          timerService.setMode(newSelection.first);
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return accentColor.withOpacity(0.12); // More muted
+                            }
+                            return Colors.transparent;
+                          }),
+                          foregroundColor: MaterialStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return accentColor.withOpacity(0.8); // More muted
+                            }
+                            return textColor.withOpacity(0.5); // More muted
+                          }),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+                    
+                    // Timer Display
+                    Center(
+                      child: Container(
+                        width: 300,
+                        height: 300,
+                        alignment: Alignment.center,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glass sphere background
+                            ClipOval(
+                              child: BackdropFilter(
+                                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                  width: 240,
+                                  height: 240,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.15),
+                                        Colors.white.withOpacity(0.02),
+                                      ],
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            
+                            // Progress indicator
+                            SizedBox(
+                              width: 260,
+                              height: 260,
+                              child: CircularProgressIndicator(
+                                value: 1.0,
+                                strokeWidth: 8,
+                                backgroundColor: textColor.withOpacity(0.03), // More muted
+                                valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)), // More muted
+                                strokeCap: StrokeCap.round,
+                              ),
+                            ),
+                            
+                            // Timer content
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Character icon for pomodoro mode
+                                if (timerService.mode == TimerMode.pomodoro)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: Text(
+                                      timerService.currentCharacter.icon,
+                                      style: const TextStyle(fontSize: 48),
+                                    ),
+                                  ),
+                                // Timer text
+                                Text(
+                                  _formatTime(timerService.remainingSeconds, timerService),
+                                  style: TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w900,
+                                    color: textColor.withOpacity(0.8), // More muted
+                                    letterSpacing: -2,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                  ),
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      ),
-                      
-                      // Glass Sphere
-                      ClipOval(
-                        child: BackdropFilter(
-                          filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            width: 270,
-                            height: 270,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Colors.white.withOpacity(0.15),
-                                  Colors.white.withOpacity(0.02),
-                                ],
-                              ),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                          ),
+                          ],
                         ),
                       ),
-                      
-                      SizedBox(
-                        width: 300,
-                        height: 300,
-                        child: CircularProgressIndicator(
-                          value: timerService.isRunning ? timerService.progress : 1.0,
-                          strokeWidth: 12,
-                          backgroundColor: textColor.withOpacity(0.05),
-                          valueColor: AlwaysStoppedAnimation<Color>(accentColor),
-                          strokeCap: StrokeCap.round,
-                        ),
-                      ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Logo Logic (Modernized)
-                        if (timerService.mode == TimerMode.pomodoro)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: timerService.currentCharacter.effectColor.withOpacity(0.15),
-                                    blurRadius: 30,
-                                    spreadRadius: 0,
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  timerService.currentCharacter.icon,
-                                  style: const TextStyle(fontSize: 60),
-                                ),
-                              ),
-                            ),
-                          ),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (Widget child, Animation<double> animation) {
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(0, 0.2),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              ),
-                            );
-                          },
-                          child: Text(
-                            _formatTime(timerService.remainingSeconds, timerService),
-                            key: ValueKey<int>(timerService.remainingSeconds),
-                            style: TextStyle(
-                              fontSize: 56,
-                              fontWeight: FontWeight.w900,
-                              color: textColor,
-                              letterSpacing: -2,
-                              fontFeatures: const [FontFeature.tabularFigures()],
-                            ),
-                          ),
-                        ),
-                        if (timerService.isRunning)
-                          Container(
-                            margin: const EdgeInsets.only(top: 8),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: accentColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              timerService.selectedCategory.toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: accentColor,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
-                      ],
                     ),
+
+                    const SizedBox(height: 24),
+
+                    // Controls
+                    _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
+                    
+                    const SizedBox(height: 16),
+                    // INPUTS BASED ON MODE
+                    if (timerService.mode == TimerMode.pomodoro) ...[
+                       Row(
+                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                         children: [
+                           _buildPresetButton(context, 25, timerService, textColor, accentColor),
+                           _buildPresetButton(context, 50, timerService, textColor, accentColor),
+                         ],
+                       )
+                    ] else ...[
+                      // Basic Slider
+                      Column(
+                        children: [
+                          Text(
+                            'Duration: ${_sliderValue.toInt()} min',
+                            style: TextStyle(color: textColor.withOpacity(0.6)), // More muted
+                          ),
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              activeTrackColor: accentColor.withOpacity(0.7), // More muted
+                              inactiveTrackColor: Colors.black.withOpacity(0.06), // More muted
+                              thumbColor: accentColor.withOpacity(0.8), // More muted
+                              overlayColor: accentColor.withOpacity(0.1), // More muted
+                            ),
+                            child: Slider(
+                              value: _sliderValue,
+                              min: 5, 
+                              max: 120,
+                              divisions: 23, 
+                              label: '${_sliderValue.toInt()} min',
+                              onChanged: (value) {
+                                setState(() {
+                                  _sliderValue = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+                    // Action Button
+                    SizedBox(
+                      height: 56,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (timerService.mode == TimerMode.basic) {
+                            timerService.setDuration(_sliderValue.toInt());
+                            timerService.startTimer();
+                          } else {
+                            if (timerService.remainingSeconds == 0) {
+                              timerService.setDuration(25);
+                            }
+                            timerService.startTimer();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accentColor.withOpacity(0.8), // More muted
+                          foregroundColor: Colors.white,
+                          elevation: 4, // Reduced elevation
+                          shadowColor: accentColor.withOpacity(0.2), // More muted
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        ),
+                        child: const Text(
+                          'START FOCUS',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
-            ),
-          ),
-          ),
-                
-                const SizedBox(height: 40),
-
-                // Controls (only show if not running)
-                  _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
-                  
-                  const SizedBox(height: 24),
-
-                  // Mini To-Do List (Summary)
-                  if (!timerService.isRunning && timerService.tasks.isNotEmpty) ...[
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Next Tasks",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: textColor.withOpacity(0.8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ...timerService.tasks.where((t) => !t.isCompleted).take(3).map((task) => Card( // Increased to 3 tasks
-                      elevation: 0,
-                      color: Colors.white.withOpacity(0.3),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        dense: true,
-                        leading: IconButton(
-                          icon: Icon(Icons.circle_outlined, size: 22, color: accentColor),
-                          onPressed: () => timerService.toggleTask(task.id),
-                        ),
-                        title: Text(
-                          task.title, 
-                          style: TextStyle(
-                            color: textColor, 
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          )
-                        ),
-                        onTap: () => setState(() => _currentIndex = 2), // Still allows going to tasks tab
-                      ),
-                    )),
-                    if (timerService.tasks.where((t) => !t.isCompleted).length > 2)
-                      TextButton(
-                        onPressed: () => setState(() => _currentIndex = 2),
-                        child: Text("See all tasks...", style: TextStyle(color: accentColor, fontSize: 12)),
-                      ),
-                    const SizedBox(height: 16),
-                  ],
-                  
-                  // INPUTS BASED ON MODE
-                  if (timerService.mode == TimerMode.pomodoro) ...[
-                     Row(
-                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                       children: [
-                         _buildPresetButton(context, 25, timerService, textColor, accentColor),
-                         _buildPresetButton(context, 50, timerService, textColor, accentColor),
-                       ],
-                     )
-                  ] else ...[
-                    // Basic Slider
-                    Column(
-                      children: [
-                        Text(
-                          'Duration: ${_sliderValue.toInt()} min',
-                          style: TextStyle(color: textColor.withOpacity(0.8)),
-                        ),
-                        SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: accentColor,
-                            inactiveTrackColor: Colors.black12,
-                            thumbColor: accentColor,
-                            overlayColor: accentColor.withOpacity(0.2),
-                          ),
-                          child: Slider(
-                            value: _sliderValue,
-                            min: 5, 
-                            max: 120,
-                            divisions: 23, 
-                            label: '${_sliderValue.toInt()} min',
-                            onChanged: (value) {
-                              setState(() {
-                                _sliderValue = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                const SizedBox(height: 40),
-
-                // Action Button
-                SizedBox(
-                  height: 64,
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (timerService.isRunning) {
-                        timerService.stopTimer();
-                      } else {
-                         if (timerService.mode == TimerMode.basic) {
-                            timerService.setDuration(_sliderValue.toInt());
-                            timerService.startTimer();
-                         } else {
-                           if (timerService.remainingSeconds == 0) {
-                              timerService.setDuration(25);
-                           }
-                           timerService.startTimer();
-                         }
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: timerService.isRunning ? const Color(0xFFC23D36) : accentColor,
-                      foregroundColor: Colors.white,
-                      elevation: 12,
-                      shadowColor: (timerService.isRunning ? const Color(0xFFC23D36) : accentColor).withOpacity(0.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                    ),
-                    child: Text(
-                      timerService.isRunning ? 'GIVE UP' : 'START FOCUS',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+        ),
+      ],
     );
   }
   
@@ -517,23 +623,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         onTap: () {
           service.setDuration(minutes);
         },
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 110,
-          padding: const EdgeInsets.symmetric(vertical: 20),
+          duration: const Duration(milliseconds: 100),
+          width: 100,
+          padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? accentColor.withOpacity(0.15) : Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(24),
+            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.12), // More muted
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? accentColor : Colors.white.withOpacity(0.2),
+              color: isSelected ? accentColor.withOpacity(0.6) : Colors.white.withOpacity(0.15), // More muted
               width: 2,
             ),
             boxShadow: isSelected ? [
               BoxShadow(
-                color: accentColor.withOpacity(0.2),
-                blurRadius: 15,
-                spreadRadius: 2,
+                color: accentColor.withOpacity(0.15), // More muted
+                blurRadius: 8, // Reduced blur
+                spreadRadius: 0, // Reduced spread
               )
             ] : [],
           ),
@@ -543,17 +649,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               Text(
                 '$minutes',
                 style: TextStyle(
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: isSelected ? accentColor : textColor,
+                  color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7), // More muted
                 ),
               ),
               Text(
                 'MIN',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: (isSelected ? accentColor : textColor).withOpacity(0.6),
+                  color: (isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7)).withOpacity(0.6), // More muted
                   letterSpacing: 1,
                 ),
               ),
@@ -562,7 +668,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
       );
   }
-
   String _formatTime(int seconds, TimerService service) {
     if (service.mode == TimerMode.pomodoro && seconds == 0 && !service.isRunning) {
       return "25:00";
@@ -572,6 +677,170 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
+  void _showGiveUpDialog(BuildContext context, TimerService service, Color accentColor, Color textColor) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation1, animation2) {
+        return Container();
+      },
+      transitionBuilder: (context, animation1, animation2, widget) {
+        return Transform.scale(
+          scale: Curves.easeOutBack.transform(animation1.value),
+          child: Opacity(
+            opacity: animation1.value,
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              contentPadding: const EdgeInsets.all(24),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Icon with simple background
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 600),
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.scale(
+                        scale: value,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.red.withOpacity(0.3),
+                              width: 2,
+                            ),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Title
+                  Text(
+                    'End Session Early?',
+                    style: TextStyle(
+                      color: Colors.grey[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Description
+                  Text(
+                    'You\'re doing great! Ending now means you won\'t earn coins for this session. Are you sure you want to stop?',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 16,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Buttons
+                  Row(
+                    children: [
+                      // Keep going button (primary)
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [accentColor, accentColor.withOpacity(0.8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accentColor.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(24),
+                              onTap: () => Navigator.pop(context),
+                              child: const Center(
+                                child: Text(
+                                  'KEEP GOING',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      
+                      // Give up button (secondary)
+                      Expanded(
+                        child: Container(
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: Colors.grey[300]!),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(24),
+                              onTap: () {
+                                Navigator.pop(context);
+                                service.stopTimer();
+                              },
+                              child: Center(
+                                child: Text(
+                                  'END',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
   void _showEditCategoriesDialog(BuildContext context, TimerService service, Color textColor, Color accentColor, Color backgroundColor) {
     final TextEditingController controller = TextEditingController();
     
@@ -652,7 +921,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-
   Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor) {
     if (service.isRunning) return const SizedBox.shrink();
     
@@ -667,13 +935,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: textColor.withOpacity(0.4),
+                color: textColor.withOpacity(0.3), // More muted
                 letterSpacing: 1.2,
               ),
             ),
             IconButton(
               onPressed: () => _showEditCategoriesDialog(context, service, textColor, accentColor, backgroundColor),
-              icon: Icon(Icons.settings_suggest_rounded, color: accentColor, size: 20),
+              icon: Icon(Icons.settings_suggest_rounded, color: accentColor.withOpacity(0.6), size: 20), // More muted
               tooltip: 'Manage Categories',
               visualDensity: VisualDensity.compact,
             ),
@@ -681,7 +949,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 4),
         SizedBox(
-          height: 52,
+          height: 44,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -696,30 +964,32 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   service.setCategory(category);
                 },
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOutCubic,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  duration: const Duration(milliseconds: 100),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   margin: const EdgeInsets.only(right: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? accentColor : Colors.white.withOpacity(0.15),
+                    color: isSelected ? accentColor.withOpacity(0.8) : Colors.white.withOpacity(0.08), // More muted
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: isSelected ? [
                       BoxShadow(
-                        color: accentColor.withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                        color: accentColor.withOpacity(0.2), // More muted
+                        blurRadius: 8, // Reduced blur
+                        offset: const Offset(0, 2), // Reduced offset
                       )
                     ] : [],
                   ),
                   child: Center(
-                    child: Text(
-                      category.toUpperCase(),
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 80),
+                      curve: Curves.easeOut,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : textColor.withOpacity(0.6),
+                        color: isSelected ? Colors.white : textColor.withOpacity(0.4), // More muted
                         letterSpacing: 0.8,
                       ),
+                      child: Text(category.toUpperCase()),
                     ),
                   ),
                 ),

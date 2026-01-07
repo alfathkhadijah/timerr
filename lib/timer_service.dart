@@ -16,11 +16,39 @@ class TimerService extends ChangeNotifier {
       FlutterLocalNotificationsPlugin();
 
   Timer? _timer;
+  Timer? _quoteTimer;
   int _remainingSeconds = 0;
   int _initialSeconds = 0;
   String _selectedCategory = 'Study';
   bool _isRunning = false;
   TimerMode _mode = TimerMode.pomodoro; // Default to Pomodoro per requirements? Or user choice. Let's say Pomodoro.
+  
+  // Motivational quotes
+  String _currentQuote = '';
+  int _currentQuoteIndex = 0;
+  
+  final List<String> _motivationalQuotes = [
+    "Focus is the key to success. You've got this!",
+    "Every minute of focus brings you closer to your goals.",
+    "Discipline is choosing between what you want now and what you want most.",
+    "The expert in anything was once a beginner.",
+    "Progress, not perfection, is the goal.",
+    "Your future self will thank you for this focused time.",
+    "Small steps daily lead to big changes yearly.",
+    "Concentration is the secret of strength.",
+    "The way to get started is to quit talking and begin doing.",
+    "Success is the sum of small efforts repeated day in and day out.",
+    "Don't watch the clock; do what it does. Keep going.",
+    "The only impossible journey is the one you never begin.",
+    "Believe you can and you're halfway there.",
+    "It always seems impossible until it's done.",
+    "The future depends on what you do today.",
+    "Excellence is not a skill, it's an attitude.",
+    "Your limitation—it's only your imagination.",
+    "Great things never come from comfort zones.",
+    "Dream it. Wish it. Do it.",
+    "Stay focused and never give up."
+  ];
 
   // Categories
   List<String> _categories = ['Study', 'Work', 'Exercise', 'Reading', 'Meditation'];
@@ -55,6 +83,7 @@ class TimerService extends ChangeNotifier {
   List<Map<String, dynamic>> get history => _history;
   List<TodoTask> get tasks => _tasks;
   double get progress => _initialSeconds == 0 ? 0 : _remainingSeconds / _initialSeconds;
+  String get currentQuote => _currentQuote;
 
   TimerService({bool skipNotifications = false}) {
     if (!skipNotifications) {
@@ -250,6 +279,15 @@ class TimerService extends ChangeNotifier {
     if (_remainingSeconds <= 0) return;
     
     _isRunning = true;
+    
+    // Set initial quote
+    _setRandomQuote();
+    
+    // Start quote rotation timer (every 3 minutes = 180 seconds)
+    _quoteTimer = Timer.periodic(const Duration(seconds: 180), (timer) {
+      _setRandomQuote();
+    });
+    
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
         _remainingSeconds--;
@@ -260,18 +298,31 @@ class TimerService extends ChangeNotifier {
     });
     notifyListeners();
   }
+  
+  void _setRandomQuote() {
+    _currentQuoteIndex = (_currentQuoteIndex + 1) % _motivationalQuotes.length;
+    _currentQuote = _motivationalQuotes[_currentQuoteIndex];
+    notifyListeners();
+  }
 
   void stopTimer() {
-    print("Stopping timer manually.");
+    print("Stopping timer manually - resetting to initial duration.");
     _timer?.cancel();
+    _quoteTimer?.cancel();
     _isRunning = false;
-    _showNotification("Timer Stopped", "You stopped the $_selectedCategory session.");
+    
+    // Reset timer to initial duration when giving up
+    _remainingSeconds = _initialSeconds;
+    _currentQuote = '';
+    
+    _showNotification("Timer Reset", "Timer has been reset. Ready to start again!");
     notifyListeners();
   }
 
   void _completeTimer() {
     print("Timer completed.");
     _timer?.cancel();
+    _quoteTimer?.cancel();
     _isRunning = false;
     
     // Calculate Coins: 5 coins per 5 minutes completed
@@ -297,6 +348,7 @@ class TimerService extends ChangeNotifier {
     _saveData(); // Persist changes
     
     _remainingSeconds = 0;
+    _currentQuote = '';
     notifyListeners();
   }
 
