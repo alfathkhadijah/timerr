@@ -80,7 +80,7 @@ class _AppInitializerState extends State<AppInitializer> {
     final prefs = await SharedPreferences.getInstance();
     
     // For testing: Uncomment the next line to always show the introduction page
-    await prefs.remove('has_seen_introduction');
+    // await prefs.remove('has_seen_introduction');
     
     final hasSeenIntroduction = prefs.getBool('has_seen_introduction') ?? false;
     
