@@ -313,6 +313,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center, // Ensure vertical centering
                 children: [
                   Text(
                     '🪙',
@@ -327,6 +328,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       fontSize: coinFontSize.clamp(14.0, 24.0),
                       fontWeight: FontWeight.w700,
                       color: textColor.withOpacity(0.7), // Match "Focus Space" text color
+                      height: 1.0, // Ensure consistent line height
                     ),
                   ),
                 ],
@@ -338,11 +340,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         // Content based on timer state
         Expanded(
           child: timerService.isRunning 
-            ? // When running - full screen centered timer
-              Center(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            ? // When running - vertically centered timer with proper spacing
+              Column(
+                children: [
+                  // Top flexible spacer
+                  const Flexible(flex: 2, child: SizedBox()),
+                  
+                  // Main timer content - centered
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // Timer Display
                       Container(
@@ -444,15 +450,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
                       
-                      // Motivational Quote
+                      // Motivational Quote (if available)
                       if (timerService.currentQuote.isNotEmpty) ...[
-                        SizedBox(height: math.max(24.0, 40.0 * finalScale)),
+                        SizedBox(height: math.max(32.0, 48.0 * finalScale)),
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-                          padding: EdgeInsets.all(math.max(16.0, 24.0 * finalScale)),
+                          padding: EdgeInsets.all(math.max(20.0, 28.0 * finalScale)),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: Colors.white.withOpacity(0.12)),
                           ),
                           child: Column(
@@ -462,7 +468,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 color: accentColor.withOpacity(0.5),
                                 size: math.max(24.0, 28.0 * finalScale),
                               ),
-                              SizedBox(height: math.max(6.0, 8.0 * finalScale)),
+                              SizedBox(height: math.max(8.0, 12.0 * finalScale)),
                               Text(
                                 timerService.currentQuote,
                                 textAlign: TextAlign.center,
@@ -471,59 +477,68 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   fontWeight: FontWeight.w500,
                                   color: textColor.withOpacity(0.7),
                                   fontStyle: FontStyle.italic,
-                                  height: 1.4,
+                                  height: 1.5,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ],
-                      
-                      // End session early button
-                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
-                          borderRadius: BorderRadius.circular(12),
-                          splashColor: textColor.withOpacity(0.1),
-                          highlightColor: textColor.withOpacity(0.05),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              vertical: math.max(14.0, 16.0 * finalScale), 
-                              horizontal: math.max(24.0, 28.0 * finalScale)
-                            ),
-                            decoration: BoxDecoration(
-                              color: textColor.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: textColor.withOpacity(0.15),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              'End session early',
-                              style: TextStyle(
-                                fontSize: math.max(15.0, 17.0 * finalScale).clamp(13.0, 19.0),
-                                fontWeight: FontWeight.w500,
-                                color: textColor.withOpacity(0.8),
-                                letterSpacing: 0.2,
-                              ),
-                            ),
+                    ],
+                  ),
+                  
+                  // Middle flexible spacer
+                  const Flexible(flex: 3, child: SizedBox()),
+                  
+                  // End session early button
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
+                      borderRadius: BorderRadius.circular(16),
+                      splashColor: textColor.withOpacity(0.1),
+                      highlightColor: textColor.withOpacity(0.05),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: math.max(16.0, 20.0 * finalScale), 
+                          horizontal: math.max(32.0, 40.0 * finalScale)
+                        ),
+                        decoration: BoxDecoration(
+                          color: textColor.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: textColor.withOpacity(0.15),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          'End session early',
+                          style: TextStyle(
+                            fontSize: math.max(15.0, 17.0 * finalScale).clamp(13.0, 19.0),
+                            fontWeight: FontWeight.w500,
+                            color: textColor.withOpacity(0.8),
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
-                      SizedBox(height: math.max(16.0, 24.0 * finalScale)),
-                    ],
+                    ),
                   ),
-                ),
+                  
+                  // Bottom flexible spacer
+                  const Flexible(flex: 2, child: SizedBox()),
+                ],
               )
             : // When not running - normal layout with controls
               LayoutBuilder(
                 builder: (context, constraints) {
+                  final availableHeight = constraints.maxHeight;
+                  
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // Top spacer for breathing room
+                      SizedBox(height: math.max(20.0, 32.0 * finalScale)),
+                      
                       // Mode Toggle
                       Center(
                         child: SegmentedButton<TimerMode>(
@@ -563,9 +578,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      SizedBox(height: math.max(16.0, 20.0 * finalScale)),
+                      // Spacer between mode toggle and timer
+                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
                       
-                      // Timer Display
+                      // Timer Display - Main focal point
                       Center(
                         child: Container(
                           width: timerSize,
@@ -646,12 +662,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced spacing before buttons
+                      // Spacer between timer and controls
+                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
 
                       // Controls
                       _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
                       
-                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced spacing after categories
+                      SizedBox(height: math.max(16.0, 24.0 * finalScale)),
+                      
                       // INPUTS BASED ON MODE
                       if (timerService.mode == TimerMode.pomodoro) ...[
                         // Make buttons span full width like session goal
@@ -662,15 +680,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               Expanded(
                                 child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
                               ),
-                              SizedBox(width: math.max(8.0, 16.0 * finalScale)),
+                              SizedBox(width: math.max(12.0, 20.0 * finalScale)),
                               Expanded(
                                 child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
                               ),
                             ],
                           ),
                         ),
-                        // Minimal spacing to prevent overflow
-                        SizedBox(height: math.max(8.0, 12.0 * finalScale)),
                       ] else ...[
                         // Basic Slider
                         Padding(
@@ -711,13 +727,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ],
 
+                      // Flexible spacer before action button - creates pleasing visual balance
                       const Spacer(),
                       
                       // Action Button
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                         child: SizedBox(
-                          height: math.max(44.0, 56.0 * finalScale).clamp(40.0, 64.0), // Reduced height
+                          height: math.max(48.0, 60.0 * finalScale).clamp(44.0, 68.0),
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: (timerService.remainingSeconds > 0) ? () {
@@ -749,7 +766,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced final spacing
+                      
+                      // Bottom spacer for breathing room
+                      SizedBox(height: math.max(20.0, 32.0 * finalScale)),
                     ],
                   );
                 },
