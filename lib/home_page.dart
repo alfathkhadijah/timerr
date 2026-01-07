@@ -1,4 +1,4 @@
-import 'dart:math';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -75,15 +75,29 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final maxWidth = constraints.maxWidth > 600 ? 500.0 : constraints.maxWidth * 0.9;
+                // Universal responsive system
+                final screenWidth = constraints.maxWidth;
+                final screenHeight = constraints.maxHeight;
+                final aspectRatio = screenHeight / screenWidth;
+                final isTablet = screenWidth >= 600 || (screenWidth * screenHeight) > 1000000;
+                final isCompact = screenWidth < 380;
+                
+                // Adaptive padding and constraints
+                final horizontalPadding = isTablet ? 32.0 : (isCompact ? 16.0 : 24.0);
+                final verticalPadding = isTablet ? 20.0 : 16.0;
+                final maxContentWidth = isTablet ? 500.0 : (screenWidth * 0.95);
+                
                 return Padding(
                   padding: EdgeInsets.symmetric(
-                    horizontal: constraints.maxWidth > 600 ? 32.0 : 24.0, 
-                    vertical: 16.0
+                    horizontal: horizontalPadding, 
+                    vertical: verticalPadding
                   ),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxWidth),
+                      constraints: BoxConstraints(
+                        maxWidth: maxContentWidth,
+                        maxHeight: screenHeight,
+                      ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 400),
                         transitionBuilder: (Widget child, Animation<double> animation) {
@@ -110,10 +124,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
       bottomNavigationBar: LayoutBuilder(
         builder: (context, constraints) {
-          final isTablet = constraints.maxWidth > 600;
-          final navHeight = isTablet ? 75.0 : 65.0;
-          final iconSize = isTablet ? 28.0 : 24.0;
-          final fontSize = isTablet ? 14.0 : 12.0;
+          // Universal navigation bar sizing
+          final screenWidth = constraints.maxWidth;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+          
+          final isTablet = screenWidth >= 600 || (screenWidth * screenHeight) > 1000000;
+          final baseScale = math.min(screenWidth / 375.0, screenHeight / 812.0);
+          final finalScale = math.max(0.8, math.min(1.2, baseScale));
+          
+          final navHeight = (isTablet ? 75.0 : 65.0) * finalScale;
+          final iconSize = (isTablet ? 28.0 : 24.0) * finalScale;
+          final fontSize = (isTablet ? 14.0 : 12.0) * finalScale / textScaleFactor;
           
           return Theme(
             data: Theme.of(context).copyWith(
@@ -122,13 +144,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   if (states.contains(MaterialState.selected)) {
                     return TextStyle(
                       color: accentColor,
-                      fontSize: fontSize,
+                      fontSize: fontSize.clamp(10.0, 16.0),
                       fontWeight: FontWeight.w600,
                     );
                   }
                   return TextStyle(
                     color: timerService.isRunning ? textColor.withOpacity(0.25) : textColor.withOpacity(0.5),
-                    fontSize: fontSize,
+                    fontSize: fontSize.clamp(10.0, 16.0),
                     fontWeight: FontWeight.w500,
                   );
                 }),
@@ -156,19 +178,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 backgroundColor: Colors.transparent,
                 indicatorColor: accentColor.withOpacity(0.08),
                 elevation: 0,
-                height: navHeight,
+                height: navHeight.clamp(60.0, 85.0),
                 labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
                 destinations: [
                   NavigationDestination(
                     icon: Icon(
                       Icons.timer_outlined, 
                       color: textColor.withOpacity(0.4),
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     selectedIcon: Icon(
                       Icons.timer, 
                       color: accentColor,
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     label: 'Timer'
                   ),
@@ -178,14 +200,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       color: timerService.isRunning 
                         ? textColor.withOpacity(0.15) 
                         : textColor.withOpacity(0.4),
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     selectedIcon: Icon(
                       Icons.checklist, 
                       color: timerService.isRunning 
                         ? accentColor.withOpacity(0.25) 
                         : accentColor,
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     label: 'Tasks'
                   ),
@@ -195,14 +217,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       color: timerService.isRunning 
                         ? textColor.withOpacity(0.15) 
                         : textColor.withOpacity(0.4),
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     selectedIcon: Icon(
                       Icons.shopping_bag, 
                       color: timerService.isRunning 
                         ? accentColor.withOpacity(0.25) 
                         : accentColor,
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     label: 'Shop'
                   ),
@@ -212,14 +234,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       color: timerService.isRunning 
                         ? textColor.withOpacity(0.15) 
                         : textColor.withOpacity(0.4),
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     selectedIcon: Icon(
                       Icons.bar_chart, 
                       color: timerService.isRunning 
                         ? accentColor.withOpacity(0.25) 
                         : accentColor,
-                      size: iconSize,
+                      size: iconSize.clamp(20.0, 32.0),
                     ), 
                     label: 'Stats'
                   ),
@@ -233,24 +255,47 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildTimerView(BuildContext context, Color textColor, Color accentColor, Color backgroundColor, TimerService timerService) {
-    final screenSize = MediaQuery.of(context).size;
+    final mediaQuery = MediaQuery.of(context);
+    final screenSize = mediaQuery.size;
     final screenWidth = screenSize.width;
     final screenHeight = screenSize.height;
-    final isSmallScreen = screenHeight < 700;
-    final isTablet = screenWidth > 600;
+    final devicePixelRatio = mediaQuery.devicePixelRatio;
+    final textScaleFactor = mediaQuery.textScaleFactor;
     
-    // Responsive sizing
-    final headerFontSize = isTablet ? 32.0 : (isSmallScreen ? 22.0 : 26.0);
-    final coinFontSize = isTablet ? 22.0 : (isSmallScreen ? 16.0 : 18.0);
-    final timerSize = isTablet ? 320.0 : (isSmallScreen ? 200.0 : 240.0);
-    final timerFontSize = isTablet ? 48.0 : (isSmallScreen ? 28.0 : 36.0);
-    final characterSize = isTablet ? 48.0 : (isSmallScreen ? 28.0 : 36.0);
+    // Universal device classification system
+    final aspectRatio = screenHeight / screenWidth;
+    final screenArea = screenWidth * screenHeight;
+    final effectiveWidth = screenWidth / textScaleFactor;
+    final effectiveHeight = screenHeight / textScaleFactor;
+    
+    // Device type detection (works for all brands and models)
+    final isTablet = screenWidth >= 600 || screenArea > 1000000;
+    final isSmallPhone = screenWidth < 360 || screenHeight < 640;
+    final isLargePhone = screenWidth > 400 && screenHeight > 800 && !isTablet;
+    final isFoldable = aspectRatio < 1.3 || aspectRatio > 2.5;
+    final isCompactDevice = effectiveWidth < 380;
+    
+    // Universal scaling factors based on screen characteristics
+    final baseScale = math.min(effectiveWidth / 375.0, effectiveHeight / 812.0); // iPhone 11 Pro as baseline
+    final densityScale = math.min(devicePixelRatio / 3.0, 1.2); // Normalize density differences
+    final areaScale = math.sqrt(screenArea / 304875.0); // Normalize by iPhone 11 Pro area
+    final finalScale = (baseScale + areaScale) / 2.0;
+    
+    // Adaptive sizing system - works universally
+    final headerFontSize = (isTablet ? 32.0 : 24.0) * finalScale;
+    final coinFontSize = (isTablet ? 22.0 : 16.0) * finalScale;
+    final timerSize = math.min(
+      (isTablet ? 300.0 : 220.0) * finalScale,
+      effectiveWidth * 0.65,
+    );
+    final timerFontSize = (isTablet ? 42.0 : 32.0) * finalScale;
+    final characterSize = (isTablet ? 40.0 : 30.0) * finalScale;
     
     return Column(
       children: [
         // Fixed Header Row with Coins (stays on top)
         Container(
-          padding: EdgeInsets.only(bottom: isSmallScreen ? 12 : 16),
+          padding: EdgeInsets.only(bottom: math.max(12.0, 16.0 * finalScale)),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -258,7 +303,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 child: Text(
                   'Focus Space',
                   style: TextStyle(
-                    fontSize: headerFontSize,
+                    fontSize: headerFontSize.clamp(18.0, 36.0),
                     fontWeight: FontWeight.w800,
                     color: textColor.withOpacity(0.7),
                     letterSpacing: -0.5,
@@ -270,25 +315,48 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 16 : 12, 
-                    vertical: isTablet ? 8 : 6
+                    horizontal: math.max(12.0, 16.0 * finalScale), 
+                    vertical: math.max(6.0, 8.0 * finalScale)
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.06),
+                    color: Colors.amber.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    border: Border.all(color: Colors.amber.withOpacity(0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('🪙', style: TextStyle(fontSize: isTablet ? 24 : 20)),
-                      SizedBox(width: isTablet ? 10 : 8),
+                      // Universal coin icon
+                      Container(
+                        width: math.max(20.0, 24.0 * finalScale),
+                        height: math.max(20.0, 24.0 * finalScale),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.shade600,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.amber.shade800, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.shade700.withOpacity(0.3),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.monetization_on,
+                            color: Colors.white,
+                            size: math.max(12.0, 14.0 * finalScale),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: math.max(8.0, 10.0 * finalScale)),
                       Text(
                         '${timerService.coins}',
                         style: TextStyle(
-                          fontSize: coinFontSize,
+                          fontSize: coinFontSize.clamp(14.0, 24.0),
                           fontWeight: FontWeight.bold,
-                          color: textColor.withOpacity(0.8),
+                          color: Colors.amber.shade800,
                         ),
                       ),
                     ],
@@ -310,8 +378,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     children: [
                       // Timer Display
                       Container(
-                        width: timerSize + 80,
-                        height: timerSize + 80,
+                        width: timerSize + (80 * finalScale),
+                        height: timerSize + (80 * finalScale),
                         alignment: Alignment.center,
                         child: Stack(
                           alignment: Alignment.center,
@@ -344,11 +412,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             
                             // Progress indicator
                             SizedBox(
-                              width: timerSize + 20,
-                              height: timerSize + 20,
+                              width: timerSize + (20 * finalScale),
+                              height: timerSize + (20 * finalScale),
                               child: CircularProgressIndicator(
                                 value: timerService.progress,
-                                strokeWidth: isTablet ? 10 : (isSmallScreen ? 6 : 8),
+                                strokeWidth: math.max(6.0, 10.0 * finalScale).clamp(4.0, 12.0),
                                 backgroundColor: textColor.withOpacity(0.03),
                                 valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)),
                                 strokeCap: StrokeCap.round,
@@ -359,32 +427,49 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Character icon for pomodoro mode
+                                // Character icon for pomodoro mode - universal design
                                 if (timerService.mode == TimerMode.pomodoro)
                                   Padding(
-                                    padding: EdgeInsets.only(bottom: isSmallScreen ? 4.0 : 8.0),
-                                    child: Text(
-                                      timerService.currentCharacter.icon,
-                                      style: TextStyle(fontSize: characterSize),
+                                    padding: EdgeInsets.only(bottom: math.max(4.0, 8.0 * finalScale)),
+                                    child: Container(
+                                      width: characterSize + (16 * finalScale),
+                                      height: characterSize + (16 * finalScale),
+                                      decoration: BoxDecoration(
+                                        color: timerService.currentCharacter.effectColor.withOpacity(0.15),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: timerService.currentCharacter.effectColor.withOpacity(0.4),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          timerService.currentCharacter.icon,
+                                          style: TextStyle(
+                                            fontSize: (characterSize * 0.7).clamp(16.0, 32.0),
+                                            fontFamily: 'NotoColorEmoji',
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 // Timer text
                                 Text(
                                   _formatTime(timerService.remainingSeconds, timerService),
                                   style: TextStyle(
-                                    fontSize: timerFontSize,
+                                    fontSize: timerFontSize.clamp(24.0, 48.0),
                                     fontWeight: FontWeight.w900,
                                     color: textColor.withOpacity(0.8),
-                                    letterSpacing: isTablet ? -2 : -1,
+                                    letterSpacing: -1 * finalScale,
                                     fontFeatures: const [FontFeature.tabularFigures()],
                                   ),
                                 ),
                                 // Category badge
                                 Container(
-                                  margin: EdgeInsets.only(top: isSmallScreen ? 8 : 12),
+                                  margin: EdgeInsets.only(top: math.max(8.0, 12.0 * finalScale)),
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: isTablet ? 20 : 16, 
-                                    vertical: isTablet ? 8 : 6
+                                    horizontal: math.max(16.0, 20.0 * finalScale), 
+                                    vertical: math.max(6.0, 8.0 * finalScale)
                                   ),
                                   decoration: BoxDecoration(
                                     color: accentColor.withOpacity(0.06),
@@ -393,7 +478,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   child: Text(
                                     timerService.selectedCategory.toUpperCase(),
                                     style: TextStyle(
-                                      fontSize: isTablet ? 16 : (isSmallScreen ? 12 : 14),
+                                      fontSize: math.max(12.0, 16.0 * finalScale).clamp(10.0, 18.0),
                                       fontWeight: FontWeight.w800,
                                       color: accentColor.withOpacity(0.7),
                                       letterSpacing: 1.2,
@@ -408,10 +493,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       
                       // Motivational Quote
                       if (timerService.currentQuote.isNotEmpty) ...[
-                        SizedBox(height: isSmallScreen ? 24 : 40),
+                        SizedBox(height: math.max(24.0, 40.0 * finalScale)),
                         Container(
                           margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-                          padding: EdgeInsets.all(isTablet ? 24 : (isSmallScreen ? 16 : 20)),
+                          padding: EdgeInsets.all(math.max(16.0, 24.0 * finalScale)),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.06),
                             borderRadius: BorderRadius.circular(16),
@@ -422,14 +507,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               Icon(
                                 Icons.format_quote,
                                 color: accentColor.withOpacity(0.5),
-                                size: isTablet ? 28 : 24,
+                                size: math.max(24.0, 28.0 * finalScale),
                               ),
-                              SizedBox(height: isSmallScreen ? 6 : 8),
+                              SizedBox(height: math.max(6.0, 8.0 * finalScale)),
                               Text(
                                 timerService.currentQuote,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: isTablet ? 18 : (isSmallScreen ? 14 : 16),
+                                  fontSize: math.max(14.0, 18.0 * finalScale).clamp(12.0, 20.0),
                                   fontWeight: FontWeight.w500,
                                   color: textColor.withOpacity(0.7),
                                   fontStyle: FontStyle.italic,
@@ -442,7 +527,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ],
                       
                       // End session early button
-                      SizedBox(height: isSmallScreen ? 24 : 40),
+                      SizedBox(height: math.max(24.0, 40.0 * finalScale)),
                       Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -452,8 +537,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           highlightColor: textColor.withOpacity(0.05),
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                              vertical: isTablet ? 16 : 14, 
-                              horizontal: isTablet ? 28 : 24
+                              vertical: math.max(14.0, 16.0 * finalScale), 
+                              horizontal: math.max(24.0, 28.0 * finalScale)
                             ),
                             decoration: BoxDecoration(
                               color: textColor.withOpacity(0.06),
@@ -466,7 +551,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             child: Text(
                               'End session early',
                               style: TextStyle(
-                                fontSize: isTablet ? 17 : 15,
+                                fontSize: math.max(15.0, 17.0 * finalScale).clamp(13.0, 19.0),
                                 fontWeight: FontWeight.w500,
                                 color: textColor.withOpacity(0.8),
                                 letterSpacing: 0.2,
@@ -475,7 +560,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(height: isSmallScreen ? 16 : 24),
+                      SizedBox(height: math.max(16.0, 24.0 * finalScale)),
                     ],
                   ),
                 ),
@@ -492,13 +577,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           segments: [
                             ButtonSegment<TimerMode>(
                               value: TimerMode.pomodoro,
-                              label: Text('Pomodoro', style: TextStyle(fontSize: isTablet ? 16 : 14)),
-                              icon: Icon(Icons.timer, size: isTablet ? 24 : 20),
+                              label: Text('Pomodoro', style: TextStyle(fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0))),
+                              icon: Icon(Icons.timer, size: math.max(20.0, 24.0 * finalScale).clamp(18.0, 28.0)),
                             ),
                             ButtonSegment<TimerMode>(
                               value: TimerMode.basic,
-                              label: Text('Basic Timer', style: TextStyle(fontSize: isTablet ? 16 : 14)),
-                              icon: Icon(Icons.watch_later_outlined, size: isTablet ? 24 : 20),
+                              label: Text('Basic Timer', style: TextStyle(fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0))),
+                              icon: Icon(Icons.watch_later_outlined, size: math.max(20.0, 24.0 * finalScale).clamp(18.0, 28.0)),
                             ),
                           ],
                           selected: <TimerMode>{timerService.mode},
@@ -525,7 +610,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      SizedBox(height: isSmallScreen ? 16 : 20),
+                      SizedBox(height: math.max(16.0, 20.0 * finalScale)),
                       
                       // Timer Display
                       Center(
@@ -541,8 +626,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 child: BackdropFilter(
                                   filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                                   child: Container(
-                                    width: timerSize - 40,
-                                    height: timerSize - 40,
+                                    width: timerSize - (40 * finalScale),
+                                    height: timerSize - (40 * finalScale),
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: LinearGradient(
@@ -564,11 +649,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               
                               // Progress indicator
                               SizedBox(
-                                width: timerSize - 20,
-                                height: timerSize - 20,
+                                width: timerSize - (20 * finalScale),
+                                height: timerSize - (20 * finalScale),
                                 child: CircularProgressIndicator(
                                   value: 1.0,
-                                  strokeWidth: isTablet ? 8 : 6,
+                                  strokeWidth: math.max(6.0, 8.0 * finalScale).clamp(4.0, 10.0),
                                   backgroundColor: textColor.withOpacity(0.03),
                                   valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)),
                                   strokeCap: StrokeCap.round,
@@ -582,20 +667,37 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   // Character icon for pomodoro mode
                                   if (timerService.mode == TimerMode.pomodoro)
                                     Padding(
-                                      padding: EdgeInsets.only(bottom: isSmallScreen ? 4.0 : 6.0),
-                                      child: Text(
-                                        timerService.currentCharacter.icon,
-                                        style: TextStyle(fontSize: characterSize),
+                                      padding: EdgeInsets.only(bottom: math.max(4.0, 6.0 * finalScale)),
+                                      child: Container(
+                                        width: characterSize + (12 * finalScale),
+                                        height: characterSize + (12 * finalScale),
+                                        decoration: BoxDecoration(
+                                          color: timerService.currentCharacter.effectColor.withOpacity(0.15),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: timerService.currentCharacter.effectColor.withOpacity(0.4),
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            timerService.currentCharacter.icon,
+                                            style: TextStyle(
+                                              fontSize: (characterSize * 0.7).clamp(14.0, 28.0),
+                                              fontFamily: 'NotoColorEmoji',
+                                            ),
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   // Timer text
                                   Text(
                                     _formatTime(timerService.remainingSeconds, timerService),
                                     style: TextStyle(
-                                      fontSize: timerFontSize,
+                                      fontSize: timerFontSize.clamp(20.0, 42.0),
                                       fontWeight: FontWeight.w900,
                                       color: textColor.withOpacity(0.8),
-                                      letterSpacing: isTablet ? -2 : -1,
+                                      letterSpacing: -1 * finalScale,
                                       fontFeatures: const [FontFeature.tabularFigures()],
                                     ),
                                   ),
@@ -606,25 +708,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      SizedBox(height: isSmallScreen ? 12 : 16),
+                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
 
                       // Controls
-                      _buildCategorySelector(timerService, textColor, accentColor, backgroundColor, isTablet, isSmallScreen),
+                      _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
                       
-                      SizedBox(height: isSmallScreen ? 16 : 20),
+                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
                       // INPUTS BASED ON MODE
                       if (timerService.mode == TimerMode.pomodoro) ...[
                         // Make buttons span full width like session goal
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.02),
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                           child: Row(
                             children: [
                               Expanded(
-                                child: _buildPresetButton(context, 25, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                                child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
                               ),
-                              SizedBox(width: isTablet ? 16 : 12),
+                              SizedBox(width: math.max(8.0, 16.0 * finalScale)),
                               Expanded(
-                                child: _buildPresetButton(context, 50, timerService, textColor, accentColor, isTablet, isSmallScreen),
+                                child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
                               ),
                             ],
                           ),
@@ -639,7 +741,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 'Duration: ${_sliderValue.toInt()} min',
                                 style: TextStyle(
                                   color: textColor.withOpacity(0.6),
-                                  fontSize: isTablet ? 16 : 14,
+                                  fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0),
                                 ),
                               ),
                               SliderTheme(
@@ -648,7 +750,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                   inactiveTrackColor: Colors.black.withOpacity(0.06),
                                   thumbColor: accentColor.withOpacity(0.8),
                                   overlayColor: accentColor.withOpacity(0.1),
-                                  trackHeight: isTablet ? 6 : 4,
+                                  trackHeight: math.max(4.0, 6.0 * finalScale).clamp(3.0, 8.0),
                                 ),
                                 child: Slider(
                                   value: _sliderValue,
@@ -675,7 +777,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                         child: SizedBox(
-                          height: isTablet ? 64 : (isSmallScreen ? 48 : 56),
+                          height: math.max(48.0, 64.0 * finalScale).clamp(44.0, 72.0),
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: (timerService.remainingSeconds > 0) ? () {
@@ -697,7 +799,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                 ? 'START FOCUS' 
                                 : 'SELECT DURATION FIRST',
                               style: TextStyle(
-                                fontSize: isTablet ? 20 : ((timerService.remainingSeconds > 0) ? 18 : 16),
+                                fontSize: (timerService.remainingSeconds > 0) 
+                                  ? math.max(16.0, 20.0 * finalScale).clamp(14.0, 22.0)
+                                  : math.max(14.0, 18.0 * finalScale).clamp(12.0, 20.0),
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
                               ),
@@ -705,7 +809,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(height: isSmallScreen ? 12 : 16),
+                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
                     ],
                   );
                 },
@@ -715,37 +819,55 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
   
-  Widget _buildPresetButton(BuildContext context, int minutes, TimerService service, Color textColor, Color accentColor, bool isTablet, bool isSmallScreen) {
+  Widget _buildPresetButton(BuildContext context, int minutes, TimerService service, Color textColor, Color accentColor) {
+      final mediaQuery = MediaQuery.of(context);
+      final screenWidth = mediaQuery.size.width;
+      final screenHeight = mediaQuery.size.height;
+      final textScaleFactor = mediaQuery.textScaleFactor;
+      
+      // Universal scaling system
+      final effectiveWidth = screenWidth / textScaleFactor;
+      final baseScale = math.min(effectiveWidth / 375.0, screenHeight / 812.0);
+      final finalScale = math.max(0.8, math.min(1.3, baseScale));
+      
       final isSelected = service.remainingSeconds == minutes * 60;
-      final buttonWidth = isTablet ? 120.0 : (isSmallScreen ? 80.0 : 100.0);
-      final fontSize = isTablet ? 28.0 : (isSmallScreen ? 20.0 : 24.0);
-      final labelFontSize = isTablet ? 13.0 : (isSmallScreen ? 9.0 : 11.0);
+      
+      // Adaptive sizing for all devices
+      final fontSize = (20.0 * finalScale).clamp(16.0, 26.0);
+      final labelFontSize = (10.0 * finalScale).clamp(8.0, 13.0);
+      final buttonHeight = (70.0 * finalScale).clamp(55.0, 85.0);
+      final verticalPadding = (12.0 * finalScale).clamp(8.0, 18.0);
+      final horizontalPadding = (16.0 * finalScale).clamp(12.0, 22.0);
       
       return InkWell(
         onTap: () {
           service.setDuration(minutes);
         },
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 100),
-          width: buttonWidth,
-          padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : (isSmallScreen ? 12 : 16)),
+          height: buttonHeight,
+          padding: EdgeInsets.symmetric(
+            vertical: verticalPadding,
+            horizontal: horizontalPadding,
+          ),
           decoration: BoxDecoration(
-            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(20),
+            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected ? accentColor.withOpacity(0.6) : Colors.white.withOpacity(0.15),
-              width: 2,
+              width: isSelected ? 2 : 1,
             ),
             boxShadow: isSelected ? [
               BoxShadow(
                 color: accentColor.withOpacity(0.15),
                 blurRadius: 8,
-                spreadRadius: 0,
+                offset: const Offset(0, 2),
               )
             ] : [],
           ),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
@@ -756,6 +878,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7),
                 ),
               ),
+              SizedBox(height: 3.0 * finalScale),
               Text(
                 'MIN',
                 style: TextStyle(
@@ -1023,12 +1146,30 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       ),
     );
   }
-  Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor, bool isTablet, bool isSmallScreen) {
+  Widget _buildCategorySelector(TimerService service, Color textColor, Color accentColor, Color backgroundColor) {
     if (service.isRunning) return const SizedBox.shrink();
     
-    final titleFontSize = isTablet ? 17.0 : (isSmallScreen ? 13.0 : 15.0);
-    final categoryFontSize = isTablet ? 15.0 : (isSmallScreen ? 11.0 : 13.0);
-    final iconSize = isTablet ? 24.0 : 20.0;
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    final textScaleFactor = mediaQuery.textScaleFactor;
+    final devicePixelRatio = mediaQuery.devicePixelRatio;
+    
+    // Universal scaling system
+    final effectiveWidth = screenWidth / textScaleFactor;
+    final baseScale = math.min(effectiveWidth / 375.0, screenHeight / 812.0);
+    final finalScale = math.max(0.8, math.min(1.3, baseScale));
+    
+    // Adaptive sizing for all devices
+    final titleFontSize = (14.0 * finalScale).clamp(11.0, 18.0);
+    final categoryFontSize = (12.0 * finalScale).clamp(9.0, 15.0);
+    final iconSize = (20.0 * finalScale).clamp(16.0, 26.0);
+    final categoryHeight = (40.0 * finalScale).clamp(32.0, 50.0);
+    
+    // Calculate available width for categories
+    final availableWidth = screenWidth - 48; // Account for padding
+    final settingsButtonWidth = iconSize + 16;
+    final categoryAreaWidth = availableWidth - settingsButtonWidth;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1050,55 +1191,94 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               icon: Icon(Icons.settings_suggest_rounded, color: accentColor.withOpacity(0.6), size: iconSize),
               tooltip: 'Manage Categories',
               visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(
+                minWidth: iconSize + 8,
+                minHeight: iconSize + 8,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 4),
         SizedBox(
-          height: isTablet ? 52 : (isSmallScreen ? 36 : 44),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: service.categories.length,
-            itemBuilder: (context, index) {
-              final category = service.categories[index];
-              final isSelected = service.selectedCategory == category;
-              
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  service.setCategory(category);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 100),
-                  curve: Curves.easeOut,
-                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 20),
-                  margin: EdgeInsets.only(right: isTablet ? 12 : 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? accentColor.withOpacity(0.8) : Colors.white.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: accentColor.withOpacity(0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      )
-                    ] : [],
-                  ),
-                  child: Center(
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 80),
-                      curve: Curves.easeOut,
+          height: categoryHeight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                clipBehavior: Clip.none,
+                itemCount: service.categories.length,
+                itemBuilder: (context, index) {
+                  final category = service.categories[index];
+                  final isSelected = service.selectedCategory == category;
+                  
+                  // Universal text measurement system
+                  final textPainter = TextPainter(
+                    text: TextSpan(
+                      text: category.toUpperCase(),
                       style: TextStyle(
                         fontSize: categoryFontSize,
                         fontWeight: FontWeight.w800,
-                        color: isSelected ? Colors.white : textColor.withOpacity(0.4),
-                        letterSpacing: 0.8,
+                        letterSpacing: 0.2,
                       ),
-                      child: Text(category.toUpperCase()),
                     ),
-                  ),
-                ),
+                    maxLines: 1,
+                    textDirection: TextDirection.ltr,
+                  );
+                  textPainter.layout();
+                  
+                  // Smart width calculation that works on all devices
+                  final textWidth = textPainter.size.width;
+                  final basePadding = 24.0 * finalScale;
+                  final minWidth = 60.0 * finalScale;
+                  final idealWidth = textWidth + basePadding;
+                  
+                  // Ensure all categories fit within screen bounds
+                  final maxCategoryWidth = (categoryAreaWidth - (service.categories.length * 8)) / service.categories.length;
+                  final finalWidth = math.max(minWidth, math.min(idealWidth, maxCategoryWidth));
+                  
+                  return GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      service.setCategory(category);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 100),
+                      curve: Curves.easeOut,
+                      width: finalWidth,
+                      margin: EdgeInsets.only(right: 8.0 * finalScale),
+                      decoration: BoxDecoration(
+                        color: isSelected ? accentColor.withOpacity(0.8) : Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(18.0 * finalScale),
+                        boxShadow: isSelected ? [
+                          BoxShadow(
+                            color: accentColor.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          )
+                        ] : [],
+                      ),
+                      child: Center(
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 80),
+                          curve: Curves.easeOut,
+                          style: TextStyle(
+                            fontSize: categoryFontSize,
+                            fontWeight: FontWeight.w800,
+                            color: isSelected ? Colors.white : textColor.withOpacity(0.4),
+                            letterSpacing: 0.2,
+                          ),
+                          child: Text(
+                            category.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
