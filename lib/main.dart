@@ -6,8 +6,14 @@ import 'home_page.dart';
 import 'introduction_page.dart';
 import 'loading_page.dart';
 import 'timer_service.dart';
+import 'services/admob_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize AdMob
+  await AdMobService().initialize();
+  
   runApp(
     MultiProvider(
       providers: [

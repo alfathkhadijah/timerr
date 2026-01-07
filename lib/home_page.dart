@@ -9,6 +9,7 @@ import 'todo_page.dart';
 import 'shop_page.dart';
 import 'models/app_theme.dart';
 import 'models/app_character.dart';
+import 'widgets/session_complete_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +21,28 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   double _sliderValue = 25;
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set up session complete callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final timerService = Provider.of<TimerService>(context, listen: false);
+      timerService.setSessionCompleteCallback(_showSessionCompleteDialog);
+    });
+  }
+
+  void _showSessionCompleteDialog(int coinsEarned, String category, int minutes) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => SessionCompleteDialog(
+        coinsEarned: coinsEarned,
+        category: category,
+        durationMinutes: minutes,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'timer_service.dart';
 import 'models/app_theme.dart';
 import 'models/app_character.dart';
+import 'widgets/rewarded_ad_widget.dart';
+import 'widgets/banner_ad_widget.dart';
 
 class ShopPage extends StatelessWidget {
   const ShopPage({super.key});
@@ -84,8 +86,20 @@ class ShopPage extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                _buildThemesGrid(context, timerService, theme),
-                _buildCharactersGrid(context, timerService, theme),
+                Column(
+                  children: [
+                    const RewardedAdWidget(),
+                    Expanded(child: _buildThemesGrid(context, timerService, theme)),
+                    const BannerAdWidget(),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const RewardedAdWidget(),
+                    Expanded(child: _buildCharactersGrid(context, timerService, theme)),
+                    const BannerAdWidget(),
+                  ],
+                ),
               ],
             ),
           ),

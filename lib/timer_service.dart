@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'models/todo_task.dart';
 import 'models/app_theme.dart';
 import 'models/app_character.dart';
+import 'services/admob_service.dart';
 
 enum TimerMode { pomodoro, basic }
 
@@ -212,6 +213,12 @@ class TimerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addBonusCoins(int amount) {
+    _coins += amount;
+    _saveData();
+    notifyListeners();
+  }
+
   void setTheme(String themeId) {
     if (_unlockedThemeIds.contains(themeId)) {
       _activeThemeId = themeId;
@@ -280,6 +287,9 @@ class TimerService extends ChangeNotifier {
     
     _isRunning = true;
     
+    // Track session start for ads
+    AdMobService().trackSessionStart();
+    
     // Set initial quote
     _setRandomQuote();
     
@@ -325,6 +335,9 @@ class TimerService extends ChangeNotifier {
     _quoteTimer?.cancel();
     _isRunning = false;
     
+    // Track session completion for ads
+    AdMobService().trackSessionCompletion();
+    
     // Calculate Coins: 5 coins per 5 minutes completed
     int minutes = _initialSeconds ~/ 60;
     int coinsEarned = (minutes ~/ 5) * 5;
@@ -338,11 +351,9 @@ class TimerService extends ChangeNotifier {
     };
     _history.add(session);
 
+    // Add coins to balance
     if (coinsEarned > 0) {
        _coins += coinsEarned;
-       _showNotification("Session Complete!", "You earned $coinsEarned coins! Total: $_coins");
-    } else {
-       _showNotification("Session Complete!", "You finished your $_selectedCategory session!");
     }
     
     _saveData(); // Persist changes
@@ -350,6 +361,35 @@ class TimerService extends ChangeNotifier {
     _remainingSeconds = 0;
     _currentQuote = '';
     notifyListeners();
+    
+    // Show session complete dialog with rewarded ad option
+    _showSessionCompleteDialog(coinsEarned, minutes);
+    
+    // Show interstitial ad if conditions are met (after dialog)
+    _showInterstitialAdIfEligible();
+  }
+
+  void _showSessionCompleteDialog(int coinsEarned, int minutes) {
+    // This will be called from the UI layer
+    // We'll add a callback mechanism for this
+    _sessionCompleteCallback?.call(coinsEarned, _selectedCategory, minutes);
+  }
+
+  // Callback for session completion dialog
+  Function(int coinsEarned, String category, int minutes)? _sessionCompleteCallback;
+  
+  void setSessionCompleteCallback(Function(int coinsEarned, String category, int minutes)? callback) {
+    _sessionCompleteCallback = callback;
+  }
+
+  void _showInterstitialAdIfEligible() {
+    final adMobService = AdMobService();
+    if (adMobService.shouldShowInterstitialAfterSession()) {
+      // Delay ad show to avoid conflicting with session complete dialog
+      Future.delayed(const Duration(seconds: 8), () {
+        adMobService.showInterstitialAd();
+      });
+    }
   }
 
   Future<void> _showNotification(String title, String body) async {
