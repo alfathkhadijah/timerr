@@ -289,7 +289,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       effectiveWidth * 0.65,
     );
     final timerFontSize = (isTablet ? 42.0 : 32.0) * finalScale;
-    final characterSize = (isTablet ? 40.0 : 30.0) * finalScale;
+    final characterSize = (isTablet ? 50.0 : 38.0) * finalScale; // Increased from 40.0 : 30.0
     
     return Column(
       children: [
@@ -311,57 +311,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: math.max(12.0, 16.0 * finalScale), 
-                    vertical: math.max(6.0, 8.0 * finalScale)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '🪙',
+                    style: TextStyle(
+                      fontSize: math.max(16.0, 20.0 * finalScale).clamp(14.0, 24.0),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                  SizedBox(width: math.max(4.0, 6.0 * finalScale)),
+                  Text(
+                    '${timerService.coins}',
+                    style: TextStyle(
+                      fontSize: coinFontSize.clamp(14.0, 24.0),
+                      fontWeight: FontWeight.w700,
+                      color: textColor.withOpacity(0.7), // Match "Focus Space" text color
+                    ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Universal coin icon
-                      Container(
-                        width: math.max(20.0, 24.0 * finalScale),
-                        height: math.max(20.0, 24.0 * finalScale),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade600,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.amber.shade800, width: 1.5),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.amber.shade700.withOpacity(0.3),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.monetization_on,
-                            color: Colors.white,
-                            size: math.max(12.0, 14.0 * finalScale),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: math.max(8.0, 10.0 * finalScale)),
-                      Text(
-                        '${timerService.coins}',
-                        style: TextStyle(
-                          fontSize: coinFontSize.clamp(14.0, 24.0),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ],
           ),
@@ -427,29 +395,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Character icon for pomodoro mode - universal design
+                                // Character icon for pomodoro mode - original style
                                 if (timerService.mode == TimerMode.pomodoro)
                                   Padding(
                                     padding: EdgeInsets.only(bottom: math.max(4.0, 8.0 * finalScale)),
-                                    child: Container(
-                                      width: characterSize + (16 * finalScale),
-                                      height: characterSize + (16 * finalScale),
-                                      decoration: BoxDecoration(
-                                        color: timerService.currentCharacter.effectColor.withOpacity(0.15),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: timerService.currentCharacter.effectColor.withOpacity(0.4),
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          timerService.currentCharacter.icon,
-                                          style: TextStyle(
-                                            fontSize: (characterSize * 0.7).clamp(16.0, 32.0),
-                                            fontFamily: 'NotoColorEmoji',
-                                          ),
-                                        ),
+                                    child: Text(
+                                      timerService.currentCharacter.icon,
+                                      style: TextStyle(
+                                        fontSize: (characterSize * 0.8).clamp(20.0, 40.0), // Increased from 0.7 and higher min
                                       ),
                                     ),
                                   ),
@@ -664,29 +617,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Character icon for pomodoro mode
+                                  // Character icon for pomodoro mode - original style
                                   if (timerService.mode == TimerMode.pomodoro)
                                     Padding(
                                       padding: EdgeInsets.only(bottom: math.max(4.0, 6.0 * finalScale)),
-                                      child: Container(
-                                        width: characterSize + (12 * finalScale),
-                                        height: characterSize + (12 * finalScale),
-                                        decoration: BoxDecoration(
-                                          color: timerService.currentCharacter.effectColor.withOpacity(0.15),
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: timerService.currentCharacter.effectColor.withOpacity(0.4),
-                                            width: 2,
-                                          ),
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            timerService.currentCharacter.icon,
-                                            style: TextStyle(
-                                              fontSize: (characterSize * 0.7).clamp(14.0, 28.0),
-                                              fontFamily: 'NotoColorEmoji',
-                                            ),
-                                          ),
+                                      child: Text(
+                                        timerService.currentCharacter.icon,
+                                        style: TextStyle(
+                                          fontSize: (characterSize * 0.8).clamp(18.0, 35.0), // Increased from 0.7 and higher min
                                         ),
                                       ),
                                     ),
@@ -708,12 +646,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                       ),
 
-                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
+                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced spacing before buttons
 
                       // Controls
                       _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
                       
-                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
+                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced spacing after categories
                       // INPUTS BASED ON MODE
                       if (timerService.mode == TimerMode.pomodoro) ...[
                         // Make buttons span full width like session goal
@@ -730,7 +668,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               ),
                             ],
                           ),
-                        )
+                        ),
+                        // Minimal spacing to prevent overflow
+                        SizedBox(height: math.max(8.0, 12.0 * finalScale)),
                       ] else ...[
                         // Basic Slider
                         Padding(
@@ -777,7 +717,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                         child: SizedBox(
-                          height: math.max(48.0, 64.0 * finalScale).clamp(44.0, 72.0),
+                          height: math.max(44.0, 56.0 * finalScale).clamp(40.0, 64.0), // Reduced height
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: (timerService.remainingSeconds > 0) ? () {
@@ -809,7 +749,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      SizedBox(height: math.max(12.0, 16.0 * finalScale)),
+                      SizedBox(height: math.max(8.0, 12.0 * finalScale)), // Reduced final spacing
                     ],
                   );
                 },
@@ -832,12 +772,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       
       final isSelected = service.remainingSeconds == minutes * 60;
       
-      // Adaptive sizing for all devices
-      final fontSize = (20.0 * finalScale).clamp(16.0, 26.0);
-      final labelFontSize = (10.0 * finalScale).clamp(8.0, 13.0);
-      final buttonHeight = (70.0 * finalScale).clamp(55.0, 85.0);
-      final verticalPadding = (12.0 * finalScale).clamp(8.0, 18.0);
-      final horizontalPadding = (16.0 * finalScale).clamp(12.0, 22.0);
+      // More aggressive size reduction to eliminate overflow completely
+      final fontSize = (16.0 * finalScale).clamp(12.0, 20.0); // Further reduced from 18.0
+      final labelFontSize = (8.0 * finalScale).clamp(6.0, 11.0); // Further reduced from 9.0
+      final buttonHeight = (55.0 * finalScale).clamp(40.0, 65.0); // Further reduced from 60.0
+      final verticalPadding = (6.0 * finalScale).clamp(3.0, 10.0); // Further reduced from 8.0
+      final horizontalPadding = (12.0 * finalScale).clamp(8.0, 16.0); // Further reduced from 14.0
       
       return InkWell(
         onTap: () {
@@ -878,7 +818,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7),
                 ),
               ),
-              SizedBox(height: 3.0 * finalScale),
+              SizedBox(height: 2.0 * finalScale), // Reduced spacing between number and MIN
               Text(
                 'MIN',
                 style: TextStyle(

@@ -99,36 +99,14 @@ class SessionCompleteDialog extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade600,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.amber.shade800, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.shade700.withOpacity(0.3),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.monetization_on,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                    ),
-                  ),
+                  const Text('🪙', style: TextStyle(fontSize: 24)),
                   const SizedBox(width: 8),
                   Text(
                     '+$coinsEarned coins earned',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: theme.textColor,
+                      color: theme.textColor.withOpacity(0.7), // Match "Focus Space" text color
                     ),
                   ),
                 ],
@@ -159,29 +137,7 @@ class SessionCompleteDialog extends StatelessWidget {
                             color: theme.textColor.withOpacity(0.06),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Container(
-                            width: 20,
-                            height: 20,
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade600,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.amber.shade800, width: 1),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.amber.shade700.withOpacity(0.3),
-                                  blurRadius: 1,
-                                  offset: const Offset(0, 0.5),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.monetization_on,
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                            ),
-                          ),
+                          child: const Text('🎁', style: TextStyle(fontSize: 20)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(

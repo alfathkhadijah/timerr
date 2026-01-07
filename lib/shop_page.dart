@@ -45,26 +45,23 @@ class ShopPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.amber.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('🪙 ', style: TextStyle(fontSize: 14)),
-                        Text(
-                          '${timerService.coins}',
-                          style: const TextStyle(
-                            color: Color(0xFFB8860B),
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                          ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '🪙',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        '${timerService.coins}',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: theme.textColor.withOpacity(0.7), // Match "Focus Space" text color
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -308,12 +305,13 @@ class ShopPage extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Text('🪙 ', style: TextStyle(fontSize: 10)),
+                          const Text('🪙', style: TextStyle(fontSize: 10)),
+                          SizedBox(width: 2),
                           Text(
                             '$cost',
-                            style: const TextStyle(
-                              color: Color(0xFFB8860B),
-                              fontWeight: FontWeight.w900,
+                            style: TextStyle(
+                              color: itemTheme.textColor.withOpacity(0.7), // Match "Focus Space" text color
+                              fontWeight: FontWeight.w700,
                               fontSize: 13,
                             ),
                           ),
