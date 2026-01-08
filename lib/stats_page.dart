@@ -75,9 +75,9 @@ class StatsPage extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                _buildStatContent(timerService.getDailyStats(), textColor, accentColor),
-                _buildStatContent(timerService.getMonthlyStats(), textColor, accentColor),
-                _buildStatContent(timerService.getYearlyStats(), textColor, accentColor),
+                _buildStatContent(context, timerService.getDailyStats(), textColor, accentColor),
+                _buildStatContent(context, timerService.getMonthlyStats(), textColor, accentColor),
+                _buildStatContent(context, timerService.getYearlyStats(), textColor, accentColor),
               ],
             ),
           ),
@@ -86,7 +86,7 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatContent(Map<String, int> stats, Color textColor, Color accentColor) {
+  Widget _buildStatContent(BuildContext context, Map<String, int> stats, Color textColor, Color accentColor) {
     if (stats.isEmpty) {
       return Center(
         child: Column(
@@ -112,7 +112,7 @@ class StatsPage extends StatelessWidget {
       children: [
         _buildSummaryCard(totalHours, totalMinutes, textColor, accentColor),
         const SizedBox(height: 24),
-        _buildChartSection(stats, textColor, accentColor),
+        _buildChartSection(context, stats, textColor, accentColor),
         const SizedBox(height: 32),
         Text(
           "Breakdown",
@@ -207,7 +207,7 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChartSection(Map<String, int> stats, Color textColor, Color accentColor) {
+  Widget _buildChartSection(BuildContext context, Map<String, int> stats, Color textColor, Color accentColor) {
     if (stats.isEmpty) return const SizedBox();
 
     final List<BarChartGroupData> barGroups = [];
@@ -239,9 +239,12 @@ class StatsPage extends StatelessWidget {
       index++;
     }
 
+    // Dynamic height based on screen size
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Container(
-      height: 220,
-      padding: const EdgeInsets.all(20),
+      height: screenHeight * 0.25, // 25% of screen height
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.6),
         borderRadius: BorderRadius.circular(32),
@@ -272,13 +275,13 @@ class StatsPage extends StatelessWidget {
                 getTitlesWidget: (value, meta) {
                   if (value.toInt() >= sortedEntries.length) return const SizedBox();
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
+                    padding: const EdgeInsets.only(top: 12.0),
                     child: Text(
                       sortedEntries[value.toInt()].key.substring(0, min(3, sortedEntries[value.toInt()].key.length)),
                       style: TextStyle(
                         color: textColor.withOpacity(0.5),
                         fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                        fontSize: 12,
                       ),
                     ),
                   );

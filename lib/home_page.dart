@@ -255,80 +255,45 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Widget _buildTimerView(BuildContext context, Color textColor, Color accentColor, Color backgroundColor, TimerService timerService) {
+    // Simplified responsive layout
     final mediaQuery = MediaQuery.of(context);
-    final screenSize = mediaQuery.size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-    final devicePixelRatio = mediaQuery.devicePixelRatio;
-    final textScaleFactor = mediaQuery.textScaleFactor;
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
     
-    // Universal device classification system
-    final aspectRatio = screenHeight / screenWidth;
-    final screenArea = screenWidth * screenHeight;
-    final effectiveWidth = screenWidth / textScaleFactor;
-    final effectiveHeight = screenHeight / textScaleFactor;
-    
-    // Device type detection (works for all brands and models)
-    final isTablet = screenWidth >= 600 || screenArea > 1000000;
-    final isSmallPhone = screenWidth < 360 || screenHeight < 640;
-    final isLargePhone = screenWidth > 400 && screenHeight > 800 && !isTablet;
-    final isFoldable = aspectRatio < 1.3 || aspectRatio > 2.5;
-    final isCompactDevice = effectiveWidth < 380;
-    
-    // Universal scaling factors based on screen characteristics
-    final baseScale = math.min(effectiveWidth / 375.0, effectiveHeight / 812.0); // iPhone 11 Pro as baseline
-    final densityScale = math.min(devicePixelRatio / 3.0, 1.2); // Normalize density differences
-    final areaScale = math.sqrt(screenArea / 304875.0); // Normalize by iPhone 11 Pro area
-    final finalScale = (baseScale + areaScale) / 2.0;
-    
-    // Adaptive sizing system - works universally
-    final headerFontSize = (isTablet ? 32.0 : 24.0) * finalScale;
-    final coinFontSize = (isTablet ? 22.0 : 16.0) * finalScale;
-    final timerSize = math.min(
-      (isTablet ? 300.0 : 220.0) * finalScale,
-      effectiveWidth * 0.65,
-    );
-    final timerFontSize = (isTablet ? 42.0 : 32.0) * finalScale;
-    final characterSize = (isTablet ? 50.0 : 38.0) * finalScale; // Increased from 40.0 : 30.0
+    // Proportional sizings
+    final timerSize = screenWidth * 0.65; // 65% of screen width
+    final maxTimerSize = 320.0;
+    final actualTimerSize = timerSize > maxTimerSize ? maxTimerSize : timerSize;
     
     return Column(
       children: [
         // Fixed Header Row with Coins (stays on top)
         Container(
-          padding: EdgeInsets.only(bottom: math.max(12.0, 16.0 * finalScale)),
+          padding: const EdgeInsets.only(bottom: 12.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  'Focus Space',
-                  style: TextStyle(
-                    fontSize: headerFontSize.clamp(18.0, 36.0),
-                    fontWeight: FontWeight.w800,
-                    color: textColor.withOpacity(0.7),
-                    letterSpacing: -0.5,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+              const Text(
+                'Focus Space',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
                 ),
               ),
               Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center, // Ensure vertical centering
                 children: [
-                  Text(
+                   const Text(
                     '🪙',
-                    style: TextStyle(
-                      fontSize: math.max(16.0, 20.0 * finalScale).clamp(14.0, 24.0),
-                    ),
+                    style: TextStyle(fontSize: 20),
                   ),
-                  SizedBox(width: math.max(4.0, 6.0 * finalScale)),
+                  const SizedBox(width: 6),
                   Text(
                     '${timerService.coins}',
                     style: TextStyle(
-                      fontSize: coinFontSize.clamp(14.0, 24.0),
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: textColor.withOpacity(0.7), // Match "Focus Space" text color
-                      height: 1.0, // Ensure consistent line height
+                      color: textColor.withOpacity(0.8),
                     ),
                   ),
                 ],
@@ -337,478 +302,323 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           ),
         ),
         
-        // Content based on timer state
+        // Main Content Area (Timer + Controls centered)
         Expanded(
-          child: timerService.isRunning 
-            ? // When running - EVENLY DISTRIBUTED
-              Column(
-                children: [
-                  // Even top spacing
-                  const Flexible(flex: 1, child: SizedBox()),
-                  
-                  // Main timer content
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Timer Display
-                      Container(
-                        width: timerSize + (80 * finalScale),
-                        height: timerSize + (80 * finalScale),
-                        alignment: Alignment.center,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Glass sphere background
-                            ClipOval(
-                              child: BackdropFilter(
-                                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                child: Container(
-                                  width: timerSize,
-                                  height: timerSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Colors.white.withOpacity(0.15),
-                                        Colors.white.withOpacity(0.02),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            
-                            // Progress indicator
-                            SizedBox(
-                              width: timerSize + (20 * finalScale),
-                              height: timerSize + (20 * finalScale),
-                              child: CircularProgressIndicator(
-                                value: timerService.progress,
-                                strokeWidth: math.max(6.0, 10.0 * finalScale).clamp(4.0, 12.0),
-                                backgroundColor: textColor.withOpacity(0.03),
-                                valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)),
-                                strokeCap: StrokeCap.round,
-                              ),
-                            ),
-                            
-                            // Timer content
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Character icon for pomodoro mode - original style
-                                if (timerService.mode == TimerMode.pomodoro)
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: math.max(4.0, 8.0 * finalScale)),
-                                    child: Text(
-                                      timerService.currentCharacter.icon,
-                                      style: TextStyle(
-                                        fontSize: (characterSize * 0.8).clamp(20.0, 40.0), // Increased from 0.7 and higher min
-                                      ),
-                                    ),
-                                  ),
-                                // Timer text
-                                Text(
-                                  _formatTime(timerService.remainingSeconds, timerService),
-                                  style: TextStyle(
-                                    fontSize: timerFontSize.clamp(24.0, 48.0),
-                                    fontWeight: FontWeight.w900,
-                                    color: textColor.withOpacity(0.8),
-                                    letterSpacing: -1 * finalScale,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
-                                  ),
-                                ),
-                                // Category badge
-                                Container(
-                                  margin: EdgeInsets.only(top: math.max(8.0, 12.0 * finalScale)),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: math.max(16.0, 20.0 * finalScale), 
-                                    vertical: math.max(6.0, 8.0 * finalScale)
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: accentColor.withOpacity(0.06),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    timerService.selectedCategory.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: math.max(12.0, 16.0 * finalScale).clamp(10.0, 18.0),
-                                      fontWeight: FontWeight.w800,
-                                      color: accentColor.withOpacity(0.7),
-                                      letterSpacing: 1.2,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (!timerService.isRunning) ...[
+                 // Not Running State
+                 
+                 // Timer Display
+                 SizedBox(
+                   width: actualTimerSize,
+                   height: actualTimerSize,
+                   child: _buildTimerCircle(
+                     context, 
+                     textColor, 
+                     accentColor, 
+                     timerService, 
+                     actualTimerSize,
+                     showProgress: false
+                   ),
+                 ),
+                 
+                 SizedBox(height: screenHeight * 0.05), // 5% gap
+                 
+                 // Controls
+                 Column(
+                   mainAxisSize: MainAxisSize.min,
+                   children: [
+                      _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
+                      SizedBox(height: screenHeight * 0.03), // 3% gap
                       
-                      // Motivational Quote (if available)
-                      if (timerService.currentQuote.isNotEmpty) ...[
-                        SizedBox(height: math.max(32.0, 48.0 * finalScale)),
-                        Container(
-                          margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-                          padding: EdgeInsets.all(math.max(20.0, 28.0 * finalScale)),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withOpacity(0.12)),
+                      // Duration inputs
+                      if (timerService.mode == TimerMode.pomodoro)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
+                              ),
+                            ],
                           ),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.format_quote,
-                                color: accentColor.withOpacity(0.5),
-                                size: math.max(24.0, 28.0 * finalScale),
-                              ),
-                              SizedBox(height: math.max(8.0, 12.0 * finalScale)),
                               Text(
-                                timerService.currentQuote,
-                                textAlign: TextAlign.center,
+                                'Duration: ${_sliderValue.toInt()} min',
                                 style: TextStyle(
-                                  fontSize: math.max(14.0, 18.0 * finalScale).clamp(12.0, 20.0),
+                                  color: textColor.withOpacity(0.6),
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w500,
-                                  color: textColor.withOpacity(0.7),
-                                  fontStyle: FontStyle.italic,
-                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  activeTrackColor: accentColor.withOpacity(0.7),
+                                  inactiveTrackColor: Colors.black.withOpacity(0.06),
+                                  thumbColor: accentColor.withOpacity(0.8),
+                                  overlayColor: accentColor.withOpacity(0.1),
+                                  trackHeight: 6,
+                                ),
+                                child: Slider(
+                                  value: _sliderValue,
+                                  min: 5, 
+                                  max: 120,
+                                  divisions: 23, 
+                                  label: '${_sliderValue.toInt()} min',
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _sliderValue = value;
+                                    });
+                                    timerService.setDuration(_sliderValue.toInt());
+                                  },
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                  
-                  // Even spacing for centering
-                  const Flexible(flex: 1, child: SizedBox()),
-                  
-                  // End session early button
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
-                      borderRadius: BorderRadius.circular(16),
-                      splashColor: textColor.withOpacity(0.1),
-                      highlightColor: textColor.withOpacity(0.05),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: math.max(16.0, 20.0 * finalScale), 
-                          horizontal: math.max(32.0, 40.0 * finalScale)
-                        ),
-                        decoration: BoxDecoration(
-                          color: textColor.withOpacity(0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: textColor.withOpacity(0.15),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          'End session early',
-                          style: TextStyle(
-                            fontSize: math.max(15.0, 17.0 * finalScale).clamp(13.0, 19.0),
-                            fontWeight: FontWeight.w500,
-                            color: textColor.withOpacity(0.8),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
+                   ],
+                 ),
+                 
+                 Spacer(), // Push remaining space down (if any)
+                 
+              ] else ...[
+                // Running State
+                
+                // Timer Display
+                 SizedBox(
+                   width: actualTimerSize * 1.1,
+                   height: actualTimerSize * 1.1,
+                   child: _buildTimerCircle(
+                     context, 
+                     textColor, 
+                     accentColor, 
+                     timerService, 
+                     actualTimerSize * 1.1,
+                     showProgress: true
+                   ),
+                 ),
+                 
+                 SizedBox(height: screenHeight * 0.05),
+                 
+                 // Quote
+                  if (timerService.currentQuote.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
                       ),
-                    ),
-                  ),
-                  
-                  // Even bottom spacing - EVENLY DISTRIBUTED
-                  const Flexible(flex: 1, child: SizedBox()),
-                ],
-              )
-            : // When not running - evenly distributed and vertically centered layout
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final availableHeight = constraints.maxHeight;
-                  
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Smaller top spacing
-                      const Flexible(flex: 1, child: SizedBox()),
-                      
-                      // Timer Display - Main focal point
-                      Center(
-                        child: Container(
-                          width: timerSize,
-                          height: timerSize,
-                          alignment: Alignment.center,
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Glass sphere background
-                              ClipOval(
-                                child: BackdropFilter(
-                                  filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Container(
-                                    width: timerSize - (40 * finalScale),
-                                    height: timerSize - (40 * finalScale),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          Colors.white.withOpacity(0.15),
-                                          Colors.white.withOpacity(0.02),
-                                        ],
-                                      ),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              
-                              // Progress indicator
-                              SizedBox(
-                                width: timerSize - (20 * finalScale),
-                                height: timerSize - (20 * finalScale),
-                                child: CircularProgressIndicator(
-                                  value: 1.0,
-                                  strokeWidth: math.max(6.0, 8.0 * finalScale).clamp(4.0, 10.0),
-                                  backgroundColor: textColor.withOpacity(0.03),
-                                  valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.6)),
-                                  strokeCap: StrokeCap.round,
-                                ),
-                              ),
-                              
-                              // Timer content
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Character icon for pomodoro mode - original style
-                                  if (timerService.mode == TimerMode.pomodoro)
-                                    Padding(
-                                      padding: EdgeInsets.only(bottom: math.max(4.0, 6.0 * finalScale)),
-                                      child: Text(
-                                        timerService.currentCharacter.icon,
-                                        style: TextStyle(
-                                          fontSize: (characterSize * 0.8).clamp(18.0, 35.0),
-                                        ),
-                                      ),
-                                    ),
-                                  // Timer text
-                                  Text(
-                                    _formatTime(timerService.remainingSeconds, timerService),
-                                    style: TextStyle(
-                                      fontSize: timerFontSize.clamp(20.0, 42.0),
-                                      fontWeight: FontWeight.w900,
-                                      color: textColor.withOpacity(0.8),
-                                      letterSpacing: -1 * finalScale,
-                                      fontFeatures: const [FontFeature.tabularFigures()],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      // Moderate spacing between timer and controls
-                      const Flexible(flex: 2, child: SizedBox()),
-
-                      // Controls section with proper spacing
-                      Column(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildCategorySelector(timerService, textColor, accentColor, backgroundColor),
-                          
-                          SizedBox(height: math.max(20.0, 32.0 * finalScale)),
-                          
-                          // INPUTS BASED ON MODE
-                          if (timerService.mode == TimerMode.pomodoro) ...[
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildPresetButton(context, 25, timerService, textColor, accentColor),
-                                  ),
-                                  SizedBox(width: math.max(16.0, 24.0 * finalScale)),
-                                  Expanded(
-                                    child: _buildPresetButton(context, 50, timerService, textColor, accentColor),
-                                  ),
-                                ],
-                              ),
+                          Icon(Icons.format_quote, color: accentColor.withOpacity(0.5)),
+                          const SizedBox(height: 8),
+                          Text(
+                            timerService.currentQuote,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: textColor.withOpacity(0.8),
+                              fontStyle: FontStyle.italic,
+                              height: 1.4,
                             ),
-                          ] else ...[
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Duration: ${_sliderValue.toInt()} min',
-                                    style: TextStyle(
-                                      color: textColor.withOpacity(0.6),
-                                      fontSize: math.max(14.0, 16.0 * finalScale).clamp(12.0, 18.0),
-                                    ),
-                                  ),
-                                  SizedBox(height: math.max(8.0, 12.0 * finalScale)),
-                                  SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      activeTrackColor: accentColor.withOpacity(0.7),
-                                      inactiveTrackColor: Colors.black.withOpacity(0.06),
-                                      thumbColor: accentColor.withOpacity(0.8),
-                                      overlayColor: accentColor.withOpacity(0.1),
-                                      trackHeight: math.max(4.0, 6.0 * finalScale).clamp(3.0, 8.0),
-                                    ),
-                                    child: Slider(
-                                      value: _sliderValue,
-                                      min: 5, 
-                                      max: 120,
-                                      divisions: 23, 
-                                      label: '${_sliderValue.toInt()} min',
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _sliderValue = value;
-                                        });
-                                        timerService.setDuration(_sliderValue.toInt());
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
                       ),
-
-                      // More spacing to push button down properly
-                      const Flexible(flex: 3, child: SizedBox()),
-                      
-                      // Action Button
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                        child: SizedBox(
-                          height: math.max(48.0, 60.0 * finalScale).clamp(44.0, 68.0),
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: (timerService.remainingSeconds > 0) ? () {
-                              timerService.startTimer();
-                            } : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: (timerService.remainingSeconds > 0) 
-                                ? accentColor.withOpacity(0.8) 
-                                : textColor.withOpacity(0.1),
-                              foregroundColor: (timerService.remainingSeconds > 0) 
-                                ? Colors.white 
-                                : textColor.withOpacity(0.4),
-                              elevation: (timerService.remainingSeconds > 0) ? 4 : 0,
-                              shadowColor: accentColor.withOpacity(0.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                            ),
-                            child: Text(
-                              (timerService.remainingSeconds > 0) 
-                                ? 'START FOCUS' 
-                                : 'SELECT DURATION FIRST',
-                              style: TextStyle(
-                                fontSize: (timerService.remainingSeconds > 0) 
-                                  ? math.max(16.0, 20.0 * finalScale).clamp(14.0, 22.0)
-                                  : math.max(14.0, 18.0 * finalScale).clamp(12.0, 20.0),
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: (timerService.remainingSeconds > 0) ? 1.5 : 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      
-                      // Small bottom spacing - proportional
-                      const Flexible(flex: 1, child: SizedBox()),
-                    ],
-                  );
-                },
+                    ),
+                  ],
+                  Spacer(),
+              ],
+            ],
+          ),
+        ),
+        
+        // Bottom Anchored Buttons Area
+        Padding(
+          padding: const EdgeInsets.only(top: 24.0, bottom: 32.0),
+          child: !timerService.isRunning 
+          ? SizedBox(
+              width: double.infinity,
+              height: 64,
+              child: ElevatedButton(
+                onPressed: (timerService.remainingSeconds > 0) ? () {
+                  timerService.startTimer();
+                } : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: (timerService.remainingSeconds > 0) 
+                    ? accentColor
+                    : textColor.withOpacity(0.1),
+                  foregroundColor: (timerService.remainingSeconds > 0) 
+                    ? Colors.white 
+                    : textColor.withOpacity(0.4),
+                  elevation: (timerService.remainingSeconds > 0) ? 8 : 0,
+                  shadowColor: accentColor.withOpacity(0.4),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+                child: Text(
+                  (timerService.remainingSeconds > 0) 
+                    ? 'START FOCUS' 
+                    : 'SELECT DURATION',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                  ),
+                ),
               ),
+            )
+          : TextButton(
+              onPressed: () => _showGiveUpDialog(context, timerService, accentColor, textColor),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                backgroundColor: textColor.withOpacity(0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: textColor.withOpacity(0.1)),
+                ),
+              ),
+              child: Text(
+                'End session early',
+                style: TextStyle(
+                  color: textColor.withOpacity(0.7),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
         ),
       ],
     );
   }
   
+  Widget _buildTimerCircle(BuildContext context, Color textColor, Color accentColor, TimerService timerService, double size, {required bool showProgress}) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Glass sphere background
+        ClipOval(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.15),
+                    Colors.white.withOpacity(0.02),
+                  ],
+                ),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+        
+        // Progress indicator
+        SizedBox(
+          width: size + 20,
+          height: size + 20,
+          child: CircularProgressIndicator(
+            value: showProgress ? timerService.progress : 1.0,
+            strokeWidth: 8,
+            backgroundColor: textColor.withOpacity(0.05),
+            valueColor: AlwaysStoppedAnimation<Color>(accentColor.withOpacity(0.8)),
+            strokeCap: StrokeCap.round,
+          ),
+        ),
+        
+        // Timer content
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (timerService.mode == TimerMode.pomodoro)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  timerService.currentCharacter.icon,
+                  style: const TextStyle(fontSize: 42),
+                ),
+              ),
+            Text(
+              _formatTime(timerService.remainingSeconds, timerService),
+              style: TextStyle(
+                fontSize: size * 0.18, // Dynamic font size based on circle size
+                fontWeight: FontWeight.w900,
+                color: textColor.withOpacity(0.9),
+                letterSpacing: -1.0,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+            if (showProgress)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  timerService.selectedCategory.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: accentColor,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+
   Widget _buildPresetButton(BuildContext context, int minutes, TimerService service, Color textColor, Color accentColor) {
-      final mediaQuery = MediaQuery.of(context);
-      final screenWidth = mediaQuery.size.width;
-      final screenHeight = mediaQuery.size.height;
-      final textScaleFactor = mediaQuery.textScaleFactor;
-      
-      // Universal scaling system
-      final effectiveWidth = screenWidth / textScaleFactor;
-      final baseScale = math.min(effectiveWidth / 375.0, screenHeight / 812.0);
-      final finalScale = math.max(0.8, math.min(1.3, baseScale));
-      
       final isSelected = service.remainingSeconds == minutes * 60;
       
-      // More aggressive size reduction to eliminate overflow completely
-      final fontSize = (16.0 * finalScale).clamp(12.0, 20.0); // Further reduced from 18.0
-      final labelFontSize = (8.0 * finalScale).clamp(6.0, 11.0); // Further reduced from 9.0
-      final buttonHeight = (55.0 * finalScale).clamp(40.0, 65.0); // Further reduced from 60.0
-      final verticalPadding = (6.0 * finalScale).clamp(3.0, 10.0); // Further reduced from 8.0
-      final horizontalPadding = (12.0 * finalScale).clamp(8.0, 16.0); // Further reduced from 14.0
-      
       return InkWell(
-        onTap: () {
-          service.setDuration(minutes);
-        },
-        borderRadius: BorderRadius.circular(16),
+        onTap: () => service.setDuration(minutes),
+        borderRadius: BorderRadius.circular(20),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          height: buttonHeight,
-          padding: EdgeInsets.symmetric(
-            vertical: verticalPadding,
-            horizontal: horizontalPadding,
-          ),
+          duration: const Duration(milliseconds: 200),
+          height: 60,
           decoration: BoxDecoration(
-            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(16),
+            color: isSelected ? accentColor.withOpacity(0.1) : Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? accentColor.withOpacity(0.6) : Colors.white.withOpacity(0.15),
+              color: isSelected ? accentColor : Colors.white.withOpacity(0.1),
               width: isSelected ? 2 : 1,
             ),
-            boxShadow: isSelected ? [
-              BoxShadow(
-                color: accentColor.withOpacity(0.15),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              )
-            ] : [],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$minutes',
-                style: TextStyle(
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7),
-                ),
-              ),
-              SizedBox(height: 2.0 * finalScale), // Reduced spacing between number and MIN
-              Text(
-                'MIN',
-                style: TextStyle(
-                  fontSize: labelFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: (isSelected ? accentColor.withOpacity(0.8) : textColor.withOpacity(0.7)).withOpacity(0.6),
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
+          alignment: Alignment.center,
+          child: Text(
+            '$minutes min',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? accentColor : textColor.withOpacity(0.7),
+            ),
           ),
         ),
       );
